@@ -82,8 +82,6 @@
   .pq { font-size: 12px; color: var(--ink3); }
   .pt { font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .sk { background: linear-gradient(90deg, var(--skel) 25%, var(--skel2) 50%, var(--skel) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 8px; }
-  .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 16px 12px 8px; color: var(--ink2); }
-  .empty-title { font-family: Manrope, sans-serif; font-weight: 700; font-size: 17px; color: var(--ink); margin-top: 6px; }
 
   .state-msg { margin: auto; max-width: 420px; text-align: center; color: var(--ink2); font-size: 14.5px; padding: 24px; }
 
@@ -113,7 +111,6 @@
     .plot { gap: 10px; }
     .listhead { padding: 22px 24px 10px; }
     .row { padding: 13px 14px; }
-    .empty { padding: 30px 12px 20px; }
   }
 </style>
 </head>
@@ -355,8 +352,6 @@
   function contentHtml() {
     var day = days[state.idx];
     var showLoading = state.loading;
-    var showEmpty = !showLoading && (!day || day.total === 0);
-    var showLive = !showLoading && !showEmpty;
     var pr = parity();
 
     var heroInner = '';
@@ -365,13 +360,6 @@
         '<div class="sk" style="width:62%;height:44px;margin-top:16px"></div>' +
         '<div class="sk" style="width:38%;height:14px;margin-top:12px"></div>' +
         '<div class="sk" style="height:140px;margin-top:18px;border-radius:12px"></div>';
-    } else if (showEmpty) {
-      heroInner =
-        '<div class="empty" style="animation: rise-' + pr + ' 500ms cubic-bezier(0.2,0.8,0.2,1) both">' +
-        '<svg width="40" height="40" fill="none" stroke="currentColor" style="stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;color:var(--ink3)"><circle cx="20" cy="20" r="14"></circle><path d="M13.5 20h13"></path></svg>' +
-        '<div class="empty-title">No sales on ' + escapeHtml(day ? day.short : '') + '</div>' +
-        '<div>No orders were recorded on this day.</div>' +
-        '</div>';
     } else {
       var prev = days[state.idx + 1];
       var deltaHtml = '';
@@ -391,37 +379,32 @@
         '<div id="chartWrap">' + chartHtml() + '</div>';
     }
 
-    var showList = showLoading || showLive;
-    var heroSpan = showEmpty ? '1 / -1' : 'auto';
-    var listHtml = '';
-    if (showList) {
-      var rowsInner = '';
-      if (showLoading) {
-        rowsInner = '<div style="display:flex;flex-direction:column;gap:14px;padding:8px 10px">' +
-          '<div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div>' +
-          '<div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div></div>';
-      } else {
-        rowsInner = day.products.map(function (p, i) {
-          var badgeBg = i === 0 ? 'var(--accent)' : 'var(--muted)';
-          var badgeFg = i === 0 ? '#ffffff' : 'var(--ink2)';
-          var delay = Math.min(i, 12) * 35 + 'ms';
-          return '<div class="row" style="animation: rise-' + pr + ' 420ms cubic-bezier(0.2,0.8,0.2,1) both;animation-delay:' + delay + '">' +
-            '<span class="rank" style="background:' + badgeBg + ';color:' + badgeFg + '">' + (i + 1) + '</span>' +
-            '<span class="pname"><span class="pn">' + escapeHtml(p.name) + '</span><span class="pq">' + fmt(p.qty) + (p.qty === 1 ? ' unit' : ' units') + '</span></span>' +
-            '<span class="pt">' + fmt(p.total) + '</span>' +
-            '</div>';
-        }).join('');
-      }
-      var countText = showLoading ? '' : (day.count + (day.count === 1 ? ' product' : ' products'));
-      listHtml = '<div class="card list">' +
-        '<div class="listhead"><span class="listtitle">Products sold</span><span class="count">' + countText + '</span></div>' +
-        '<div class="rows">' + rowsInner + '</div>' +
-        '</div>';
+    var rowsInner = '';
+    if (showLoading) {
+      rowsInner = '<div style="display:flex;flex-direction:column;gap:14px;padding:8px 10px">' +
+        '<div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div>' +
+        '<div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div></div>';
+    } else {
+      rowsInner = day.products.map(function (p, i) {
+        var badgeBg = i === 0 ? 'var(--accent)' : 'var(--muted)';
+        var badgeFg = i === 0 ? '#ffffff' : 'var(--ink2)';
+        var delay = Math.min(i, 12) * 35 + 'ms';
+        return '<div class="row" style="animation: rise-' + pr + ' 420ms cubic-bezier(0.2,0.8,0.2,1) both;animation-delay:' + delay + '">' +
+          '<span class="rank" style="background:' + badgeBg + ';color:' + badgeFg + '">' + (i + 1) + '</span>' +
+          '<span class="pname"><span class="pn">' + escapeHtml(p.name) + '</span><span class="pq">' + fmt(p.qty) + (p.qty === 1 ? ' unit' : ' units') + '</span></span>' +
+          '<span class="pt">' + fmt(p.total) + '</span>' +
+          '</div>';
+      }).join('');
     }
+    var countText = showLoading ? '' : (day.count + (day.count === 1 ? ' product' : ' products'));
+    var listHtml = '<div class="card list">' +
+      '<div class="listhead"><span class="listtitle">Products sold</span><span class="count">' + countText + '</span></div>' +
+      '<div class="rows">' + rowsInner + '</div>' +
+      '</div>';
 
     var slideAnim = 'slide-' + state.dir + '-' + pr;
     return '<div class="content" id="content" style="animation: ' + slideAnim + ' 380ms cubic-bezier(0.2,0.8,0.2,1) both">' +
-      '<div class="card hero" style="grid-column: ' + heroSpan + '">' + heroInner + '</div>' +
+      '<div class="card hero">' + heroInner + '</div>' +
       listHtml +
       '</div>';
   }
