@@ -59,7 +59,7 @@ def main():
     pos_orders = execute(
         "pos.order", "search_read",
         domain_window + [["state", "in", ["paid", "done"]]],
-        {"fields": ["id", "amount_total"]},
+        fields=["id", "amount_total"],
     )
     pos_total = sum(o["amount_total"] for o in pos_orders)
     pos_count = len(pos_orders)
@@ -72,7 +72,7 @@ def main():
         lines = execute(
             "pos.order.line", "search_read",
             [["order_id", "in", pos_order_ids], ["sale_order_origin_id", "!=", False]],
-            {"fields": ["sale_order_origin_id"]},
+            fields=["sale_order_origin_id"],
         )
         for line in lines:
             pos_linked_sale_order_ids.add(line["sale_order_origin_id"][0])
@@ -81,7 +81,7 @@ def main():
     confirmed_orders = execute(
         "sale.order", "search_read",
         domain_window + [["state", "=", "sale"]],
-        {"fields": ["id", "amount_total"]},
+        fields=["id", "amount_total"],
     )
     regular_orders = [o for o in confirmed_orders if o["id"] not in pos_linked_sale_order_ids]
     regular_total = sum(o["amount_total"] for o in regular_orders)
@@ -91,7 +91,7 @@ def main():
     pending_orders = execute(
         "sale.order", "search_read",
         domain_window + [["state", "in", ["draft", "sent"]]],
-        {"fields": ["id", "amount_total"]},
+        fields=["id", "amount_total"],
     )
     pending_total = sum(o["amount_total"] for o in pending_orders)
     pending_count = len(pending_orders)
