@@ -1,0 +1,533 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f7f6; font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #0f6f68; } a:hover { color: #0b5750; }
+    .app {
+      --bg: #f4f7f6; --surface: #ffffff; --muted: #edf2f0; --ink: #0d1f1c; --ink2: #4c5f5b; --ink3: #7c8c88;
+      --border: rgba(13,31,28,0.08); --grid: #e1e6e4; --skel: #e6ebe9; --skel2: #f1f4f3;
+      --shadow: 0 1px 2px rgba(13,31,28,0.05), 0 12px 32px -16px rgba(13,31,28,0.22);
+      height: 100vh; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; overflow: hidden; outline: none; -webkit-tap-highlight-color: transparent;
+    }
+    .app.dark {
+      --bg: #0b1614; --surface: #11201d; --muted: #162622; --ink: #f2f6f5; --ink2: #b7c6c2; --ink3: #82938e;
+      --border: rgba(255,255,255,0.08); --grid: #223330; --skel: #1a2b27; --skel2: #20332e;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 14px 32px -16px rgba(0,0,0,0.6);
+    }
+    .shell { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 16px; width: 100%; max-width: 1160px; margin: 0 auto; }
+    .topbar { display: flex; flex-direction: column; gap: 12px; }
+    .brand { display: flex; align-items: baseline; gap: 10px; }
+    .eyebrow { font-family: Manrope, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink3); }
+    .title { font-family: Manrope, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
+    .pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
+    .pills::-webkit-scrollbar { display: none; }
+    .pill { flex: 0 0 auto; height: 36px; padding: 0 14px; border-radius: 999px; border: 0; font-family: "Source Sans 3", system-ui, sans-serif; font-weight: 600; font-size: 13px; line-height: 1; cursor: pointer; transition: background 0.2s, color 0.2s, box-shadow 0.2s; }
+    .main { flex: 1; min-height: 0; display: flex; flex-direction: column; user-select: none; -webkit-user-select: none; touch-action: pan-y; }
+    .content { flex: 1; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 14px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); }
+    .hero { padding: 18px 18px 14px; display: flex; flex-direction: column; }
+    .daterow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .dayname { font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; line-height: 1.15; }
+    .daydate { font-size: 13px; color: var(--ink2); margin-top: 2px; }
+    .navbtns { display: flex; gap: 6px; }
+    .navbtn { width: 44px; height: 44px; border-radius: 999px; border: 0; background: var(--muted); color: var(--ink2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.2s; }
+    .total { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; font-family: Manrope, sans-serif; font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
+    .cur { font-size: 15px; font-weight: 700; color: var(--ink2); letter-spacing: 0.02em; }
+    .delta { display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 600; margin-top: 8px; }
+    .chart { position: relative; height: 140px; margin-top: 16px; cursor: crosshair; }
+    .hours { position: relative; height: 16px; margin-top: 6px; font-size: 11px; color: var(--ink3); font-variant-numeric: tabular-nums; }
+    .hours span { position: absolute; top: 0; }
+    .hline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--ink3); opacity: 0.5; pointer-events: none; }
+    .hdot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid; transform: translate(-50%, -50%); pointer-events: none; }
+    .tip { position: absolute; top: -8px; background: var(--ink); color: var(--bg); font-size: 12px; font-weight: 600; padding: 5px 8px; border-radius: 8px; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
+    .list { display: flex; flex-direction: column; min-height: 0; }
+    .listhead { display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; }
+    .listtitle { font-family: Manrope, sans-serif; font-weight: 700; font-size: 15px; }
+    .count { font-size: 12.5px; color: var(--ink3); }
+    .rows { flex: 1; min-height: 0; overflow-y: auto; padding: 0 8px 8px; }
+    .row { display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; }
+    .row:hover { background: var(--muted); }
+    .rank { flex: 0 0 24px; height: 24px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .pname { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .pn { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pq { font-size: 12px; color: var(--ink3); }
+    .pt { font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sk { background: linear-gradient(90deg, var(--skel) 25%, var(--skel2) 50%, var(--skel) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 8px; }
+    .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 30px 12px 22px; color: var(--ink2); }
+    .empty-title { font-family: Manrope, sans-serif; font-weight: 700; font-size: 17px; color: var(--ink); margin-top: 6px; }
+    @keyframes rise-a { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes rise-b { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes slide-older-a { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+    @keyframes slide-older-b { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+    @keyframes slide-newer-a { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+    @keyframes slide-newer-b { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+    @keyframes draw-a { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+    @keyframes draw-b { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+    @keyframes fade-a { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fade-b { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    @media (min-width: 900px) {
+      .shell { padding: 36px 40px 32px; gap: 22px; }
+      .topbar { flex-direction: row; align-items: center; justify-content: space-between; }
+      .title { font-size: 22px; }
+      .content { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 22px; }
+      .hero { padding: 28px 28px 22px; }
+      .dayname { font-size: 26px; }
+      .daydate { font-size: 14px; }
+      .total { font-size: 64px; margin-top: 26px; }
+      .cur { font-size: 20px; }
+      .delta { font-size: 14.5px; margin-top: 12px; }
+      .chart { height: 230px; margin-top: auto; }
+      .listhead { padding: 22px 24px 10px; }
+      .row { padding: 13px 14px; }
+      .empty { padding: 60px 12px 40px; }
+    }
+  </style>
+</helmet>
+<div class="app {{themeClass}}" tabindex="0" onKeyDown="{{onKey}}">
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <span class="title">Ike Sales</span>
+        <span class="eyebrow">MRH Investment</span>
+      </div>
+      <div class="pills" ref="{{stripRef}}">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="5">
+          <button class="pill" data-idx="{{d.k}}" style="background: {{d.bg}}; color: {{d.fg}}; box-shadow: {{d.shadow}}" onClick="{{d.pick}}">{{d.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="main" onTouchStart="{{touchStart}}" onTouchEnd="{{touchEnd}}" onMouseDown="{{mouseDown}}" onMouseUp="{{mouseUp}}">
+      <div class="content" style="animation: {{anim.slide}} 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both">
+
+        <div class="card hero" style="grid-column: {{heroSpan}}">
+          <div class="daterow">
+            <div>
+              <div class="dayname">{{day.name}}</div>
+              <div class="daydate">{{day.sub}}</div>
+            </div>
+            <div class="navbtns">
+              <button class="navbtn" aria-label="Newer day" style="opacity: {{nav.prevOpacity}}" onClick="{{nav.prev}}">
+                <svg width="20" height="20" fill="none" stroke="currentColor" style="stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M12.5 4.5L7 10l5.5 5.5"></path></svg>
+              </button>
+              <button class="navbtn" aria-label="Older day" style="opacity: {{nav.nextOpacity}}" onClick="{{nav.next}}">
+                <svg width="20" height="20" fill="none" stroke="currentColor" style="stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M7.5 4.5L13 10l-5.5 5.5"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <sc-if value="{{showLoading}}" hint-placeholder-val="{{false}}">
+            <div class="sk" style="width: 62%; height: 44px; margin-top: 16px"></div>
+            <div class="sk" style="width: 38%; height: 14px; margin-top: 12px"></div>
+            <div class="sk" style="height: 140px; margin-top: 18px; border-radius: 12px"></div>
+          </sc-if>
+
+          <sc-if value="{{showEmpty}}" hint-placeholder-val="{{false}}">
+            <div class="empty" style="animation: {{anim.rise}} 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both">
+              <svg width="40" height="40" fill="none" stroke="currentColor" style="stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; color: var(--ink3)"><circle cx="20" cy="20" r="14"></circle><path d="M13.5 20h13"></path></svg>
+              <div class="empty-title">No sales on {{day.short}}</div>
+              <div>No orders were recorded on this day.</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{showLive}}" hint-placeholder-val="{{true}}">
+            <div class="total" style="animation: {{anim.rise}} 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both">
+              <span class="cur">MVR</span><span>{{totalText}}</span>
+            </div>
+            <sc-if value="{{delta.show}}" hint-placeholder-val="{{true}}">
+              <div class="delta" style="color: {{delta.color}}; animation: {{anim.rise}} 500ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both">
+                <svg width="14" height="14" fill="none" stroke="currentColor" style="stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transform: rotate({{delta.rot}}deg)"><path d="M7 12V2M2.5 6.5L7 2l4.5 4.5"></path></svg>
+                <span>{{delta.text}}</span>
+              </div>
+            </sc-if>
+            <div class="chart" ref="{{chartRef}}" onPointerMove="{{chartMove}}" onPointerLeave="{{chartLeave}}">
+              <svg width="100%" height="100%" style="display: block; overflow: visible">
+                <line x1="0" x2="{{chart.w}}" y1="{{chart.g1}}" y2="{{chart.g1}}" style="stroke: var(--grid)"></line>
+                <line x1="0" x2="{{chart.w}}" y1="{{chart.g2}}" y2="{{chart.g2}}" style="stroke: var(--grid)"></line>
+                <line x1="0" x2="{{chart.w}}" y1="{{chart.g3}}" y2="{{chart.g3}}" style="stroke: var(--grid)"></line>
+                <path d="{{chart.area}}" style="fill: {{accent}}; opacity: 0.1; animation: {{anim.fade}} 900ms ease 300ms both"></path>
+                <path d="{{chart.line}}" pathLength="1" style="fill: none; stroke: {{accent}}; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; animation: {{anim.draw}} 1000ms cubic-bezier(0.4, 0, 0.2, 1) 150ms both"></path>
+                <circle cx="{{chart.endX}}" cy="{{chart.endY}}" r="4" style="fill: {{accent}}; animation: {{anim.fade}} 300ms ease 1100ms both"></circle>
+              </svg>
+              <sc-if value="{{hover.show}}" hint-placeholder-val="{{false}}">
+                <div class="hline" style="left: {{hover.left}}px"></div>
+                <div class="hdot" style="left: {{hover.left}}px; top: {{hover.top}}px; border-color: {{accent}}"></div>
+                <div class="tip" style="left: {{hover.left}}px; transform: translateX({{hover.shift}}%)">{{hover.text}}</div>
+              </sc-if>
+            </div>
+            <div class="hours">
+              <span style="left: 0">9:00</span>
+              <span style="left: 23%; transform: translateX(-50%)">12:00</span>
+              <span style="left: 46.2%; transform: translateX(-50%)">15:00</span>
+              <span style="left: 69.2%; transform: translateX(-50%)">18:00</span>
+              <span style="right: 0">22:00</span>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{showList}}" hint-placeholder-val="{{true}}">
+          <div class="card list">
+            <div class="listhead">
+              <span class="listtitle">Products sold</span>
+              <span class="count">{{countText}}</span>
+            </div>
+            <div class="rows">
+              <sc-if value="{{showLoading}}" hint-placeholder-val="{{false}}">
+                <div style="display: flex; flex-direction: column; gap: 14px; padding: 8px 10px">
+                  <div class="sk" style="height: 34px"></div>
+                  <div class="sk" style="height: 34px"></div>
+                  <div class="sk" style="height: 34px"></div>
+                  <div class="sk" style="height: 34px"></div>
+                  <div class="sk" style="height: 34px"></div>
+                  <div class="sk" style="height: 34px"></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{showLive}}" hint-placeholder-val="{{true}}">
+                <sc-for list="{{products}}" as="p" hint-placeholder-count="6">
+                  <div class="row" style="animation: {{anim.rise}} 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: {{p.delay}}">
+                    <span class="rank" style="background: {{p.badgeBg}}; color: {{p.badgeFg}}">{{p.rank}}</span>
+                    <span class="pname"><span class="pn">{{p.name}}</span><span class="pq">{{p.qtyText}}</span></span>
+                    <span class="pt">{{p.totalText}}</span>
+                  </div>
+                </sc-for>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"},"accent":{"editor":"color","default":"#0f6f68","options":["#0f6f68","#2a78d6","#6d4fc2","#b8541e"],"section":"Theme"},"demo":{"editor":"enum","default":"live","options":["live","loading","empty"],"section":"State"},"$preview":{"width":390,"height":844}}'>
+var DAYN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+var MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+var WEIGHTS = [0.35, 0.7, 1.0, 1.25, 0.85, 0.6, 0.85, 1.1, 1.2, 1.45, 1.35, 0.95, 0.5];
+var STEPS = 13;
+
+// name, unit price (MVR), min qty, max qty, chance of selling on a given day
+var CATALOG = [
+  ['2C White Double Side 2000mm', 2800, 1, 5, 0.55],
+  ['2C White Net 2000x900mm', 700, 2, 8, 0.6],
+  ['Trolley Stand 5 Layer Black', 1900, 1, 2, 0.35],
+  ['Black Base Rectangular Container 38oz w/ PP Lid', 8, 50, 300, 0.7],
+  ['Table Lamp Rechargeable', 220, 1, 8, 0.5],
+  ['Hook Slat 12"', 16, 20, 100, 0.6],
+  ['Rain Coat Polyester #5', 800, 1, 3, 0.3],
+  ['Slat Board 4x8ft 15mm Alu', 790, 1, 4, 0.5],
+  ['2C White Net Bracket Top 900mm', 150, 2, 8, 0.5],
+  ['2C White Net Bracket Bottom 900mm', 150, 2, 8, 0.5],
+  ['Rain Coat Polyester #4', 699, 1, 3, 0.3],
+  ['Table Mat PVC 30x45cm #4', 19, 10, 60, 0.6],
+  ['Gas Regulator (High Pressure)', 360, 1, 4, 0.5],
+  ['Paper Straw 8mm 50 pcs', 35, 5, 30, 0.6],
+  ['Aluminium Foil Box 8389 Loose', 3, 50, 300, 0.7],
+  ['Flower Pot 33x31cm', 20, 5, 30, 0.5],
+  ['Gas Pipe (Yellow)', 15, 3, 20, 0.5],
+  ['Aluminium Foil Box 83241 Loose', 5, 10, 100, 0.6],
+  ['Dustbin Plastic 26cm #601', 39, 1, 6, 0.5],
+  ['Sponges Colorful 10pcs #31', 32, 1, 10, 0.5],
+  ['Strainer Steel 10cm', 25, 1, 6, 0.4],
+  ['Plastic Strainer Red', 19, 1, 6, 0.4],
+  ['Toilet Brush Plastic #35', 19, 1, 6, 0.4],
+  ['Plastic Strainer Blue', 12, 1, 6, 0.4],
+  ['Paper Bag Brown Twisted Handle', 5, 1, 50, 0.6],
+  ['Cling Film 30cm x 300m', 85, 1, 6, 0.4],
+  ['Storage Box 45L Clear', 240, 1, 5, 0.35],
+  ['Broom Soft Bristle', 65, 1, 6, 0.4]
+];
+
+// Today mirrors the live feed (name, qty, total).
+var TODAY = [
+  ['2C White Double Side 2000mm', 5, 14000], ['2C White Net 2000x900mm', 5, 3500], ['Trolley Stand 5 Layer Black', 1, 1900],
+  ['Black Base Rectangular Container 38oz w/ PP Lid', 150, 1200], ['Table Lamp Rechargeable', 5, 1100], ['Hook Slat 12"', 50, 800],
+  ['Rain Coat Polyester #5', 1, 800], ['Slat Board 4x8ft 15mm Alu', 1, 790], ['2C White Net Bracket Top 900mm', 5, 750],
+  ['2C White Net Bracket Bottom 900mm', 5, 750], ['Rain Coat Polyester #4', 1, 699], ['Table Mat PVC 30x45cm #4', 25, 475],
+  ['Gas Regulator (High Pressure)', 1, 360], ['Paper Straw 8mm 50 pcs', 10, 350], ['Aluminium Foil Box 8389 Loose', 100, 300],
+  ['Flower Pot 33x31cm', 10, 200], ['Gas Pipe (Yellow)', 7, 105], ['Aluminium Foil Box 83241 Loose', 10, 50],
+  ['Dustbin Plastic 26cm #601', 1, 39], ['Sponges Colorful 10pcs #31', 1, 32], ['Strainer Steel 10cm', 1, 25],
+  ['Plastic Strainer Red', 1, 19], ['Toilet Brush Plastic #35', 1, 19], ['Plastic Strainer Blue', 1, 12], ['Paper Bag Brown Twisted Handle', 1, 5]
+];
+
+// Volume factor per day back (index 1 = yesterday). Day 8 is a closed day.
+var FACTORS = [1, 0.85, 1.2, 0.75, 1.0, 0.65, 0.5, 1.1, 0];
+
+function rng(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function pickHour(r) {
+  var tot = 0, i;
+  for (i = 0; i < STEPS; i++) tot += WEIGHTS[i];
+  var x = r() * tot;
+  for (i = 0; i < STEPS; i++) { x -= WEIGHTS[i]; if (x <= 0) return 9 + i; }
+  return 21;
+}
+function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+
+// Raw order lines: the same product can appear on several orders in a day.
+function genLines(seed, factor) {
+  var r = rng(seed), lines = [];
+  if (!factor) return lines;
+  CATALOG.forEach(function (c) {
+    if (r() > c[4] * factor) return;
+    var qty = c[2] + Math.floor(r() * (c[3] - c[2] + 1));
+    var n = 1 + (r() < 0.35 ? 1 : 0) + (qty >= 20 && r() < 0.5 ? 1 : 0);
+    var left = qty;
+    for (var i = 0; i < n; i++) {
+      var q = i === n - 1 ? left : Math.max(1, Math.round(left * (0.3 + r() * 0.5)));
+      if (q > left) q = left;
+      left -= q;
+      if (q <= 0) continue;
+      lines.push({ name: c[0], qty: q, total: q * c[1], hour: pickHour(r) });
+    }
+  });
+  return lines;
+}
+function todayLines() {
+  var r = rng(7), lines = [];
+  TODAY.forEach(function (t) {
+    var split = t[1] > 1 && r() < 0.4;
+    if (split) {
+      var q1 = Math.max(1, Math.round(t[1] * (0.3 + r() * 0.4)));
+      lines.push({ name: t[0], qty: q1, total: t[2] * q1 / t[1], hour: pickHour(r) });
+      lines.push({ name: t[0], qty: t[1] - q1, total: t[2] * (t[1] - q1) / t[1], hour: pickHour(r) });
+    } else {
+      lines.push({ name: t[0], qty: t[1], total: t[2], hour: pickHour(r) });
+    }
+  });
+  return lines;
+}
+// Aggregate identical products into one row per day, sorted by sales.
+function buildDay(k, lines) {
+  var d = new Date(Date.UTC(2026, 8, 12) - k * 86400000);
+  var agg = {};
+  lines.forEach(function (l) {
+    var a = agg[l.name] || (agg[l.name] = { name: l.name, qty: 0, total: 0 });
+    a.qty += l.qty; a.total += l.total;
+  });
+  var products = Object.keys(agg).map(function (n) { return agg[n]; })
+    .sort(function (a, b) { return b.total - a.total || a.name.localeCompare(b.name); });
+  var total = products.reduce(function (s, p) { return s + p.total; }, 0);
+  var cum = [0];
+  for (var h = 9; h < 22; h++) {
+    cum.push(cum[cum.length - 1] + lines.filter(function (l) { return l.hour === h; }).reduce(function (s, l) { return s + l.total; }, 0));
+  }
+  var wd = DAYN[d.getUTCDay()], dn = d.getUTCDate(), mo = MON[d.getUTCMonth()], yr = d.getUTCFullYear();
+  return {
+    k: k, wd: wd, total: total, cum: cum, products: products, count: products.length,
+    name: k === 0 ? 'Today' : (k === 1 ? 'Yesterday' : wd),
+    sub: k < 2 ? wd + ', ' + dn + ' ' + mo + ' ' + yr : dn + ' ' + mo + ' ' + yr,
+    label: k === 0 ? 'Today' : wd.slice(0, 3) + ' ' + dn,
+    short: wd.slice(0, 3) + ' ' + dn + ' ' + mo.slice(0, 3)
+  };
+}
+function buildData() {
+  var days = [];
+  for (var k = 0; k < FACTORS.length; k++) {
+    days.push(buildDay(k, k === 0 ? todayLines() : genLines(1000 + k, FACTORS[k])));
+  }
+  return days;
+}
+
+class Component extends DCLogic {
+  state = { idx: 0, loading: true, shown: 0, dir: 'older', hover: null, tick: 0, cw: 322, ch: 140 };
+
+  chartRef = (el) => {
+    if (this.ro) { try { this.ro.disconnect(); } catch (e) {} this.ro = null; }
+    if (el && typeof ResizeObserver !== 'undefined') {
+      this.ro = new ResizeObserver((entries) => {
+        var r = entries[0] && entries[0].contentRect;
+        if (r && r.width > 0 && (Math.abs(r.width - this.state.cw) > 1 || Math.abs(r.height - this.state.ch) > 1)) {
+          this.setState({ cw: r.width, ch: r.height });
+        }
+      });
+      this.ro.observe(el);
+    }
+  };
+  stripRef = (el) => { this.strip = el; };
+
+  componentDidMount() { this.load(0, 'older'); }
+  componentWillUnmount() {
+    clearTimeout(this.timer);
+    if (this.raf) cancelAnimationFrame(this.raf);
+    if (this.ro) { try { this.ro.disconnect(); } catch (e) {} }
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.idx !== this.state.idx && this.strip) {
+      try {
+        var el = this.strip.querySelector('[data-idx="' + this.state.idx + '"]');
+        if (el) this.strip.scrollTo({ left: Math.max(0, el.offsetLeft - 16), behavior: 'smooth' });
+      } catch (e) {}
+    }
+  }
+
+  data() { return this._data || (this._data = buildData()); }
+
+  load(i, dir) {
+    clearTimeout(this.timer);
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.setState({ loading: true, idx: i, dir: dir, hover: null, shown: 0 });
+    this.timer = setTimeout(() => {
+      this.setState({ loading: false, tick: this.state.tick + 1 });
+      this.countUp(this.data()[i].total);
+    }, 420);
+  }
+  countUp(total) {
+    var start = null, dur = 700;
+    var step = (t) => {
+      if (start === null) start = t;
+      var p = Math.min(1, (t - start) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      this.setState({ shown: total * e });
+      if (p < 1) this.raf = requestAnimationFrame(step);
+    };
+    this.raf = requestAnimationFrame(step);
+  }
+  go(i, dir) {
+    var days = this.data();
+    if (i < 0 || i >= days.length || i === this.state.idx) return;
+    this.load(i, dir || (i > this.state.idx ? 'older' : 'newer'));
+  }
+  swipeEnd(x, y) {
+    if (!this.touch) return;
+    var dx = x - this.touch.x, dy = y - this.touch.y;
+    this.touch = null;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) this.go(this.state.idx + 1); else this.go(this.state.idx - 1);
+    }
+  }
+
+  renderVals() {
+    var days = this.data();
+    var st = this.state;
+    var day = days[st.idx];
+    var demo = this.props.demo || 'live';
+    var dark = !!this.props.dark;
+    var accentProp = this.props.accent || '#0f6f68';
+    var accent = (dark && accentProp.toLowerCase() === '#0f6f68') ? '#29b3a6' : accentProp;
+    var ink3 = dark ? '#82938e' : '#7c8c88';
+    var ink2 = dark ? '#b7c6c2' : '#4c5f5b';
+    var surface = dark ? '#11201d' : '#ffffff';
+    var muted = dark ? '#162622' : '#edf2f0';
+
+    var showLoading = st.loading || demo === 'loading';
+    var showEmpty = !showLoading && (demo === 'empty' || day.total === 0);
+    var showLive = !showLoading && !showEmpty;
+    var parity = st.tick % 2 ? 'b' : 'a';
+    var anim = { slide: 'slide-' + st.dir + '-' + parity, rise: 'rise-' + parity, draw: 'draw-' + parity, fade: 'fade-' + parity };
+
+    // Percent change vs the previous day
+    var prev = days[st.idx + 1];
+    var delta = { show: false, text: '', color: ink2, rot: 0 };
+    if (showLive && prev && prev.total > 0 && day.total > 0) {
+      var pct = (day.total - prev.total) / prev.total * 100;
+      var up = pct >= 0;
+      delta = {
+        show: true,
+        text: (up ? '+' : '−') + Math.abs(pct).toFixed(1) + '% vs ' + (st.idx === 0 ? 'yesterday' : prev.wd.slice(0, 3)),
+        color: up ? accent : ink2,
+        rot: up ? 0 : 180
+      };
+    }
+
+    // Cumulative chart geometry in px (container is measured)
+    var w = st.cw, h = st.ch, top = 8, bottom = 4;
+    var max = Math.max(day.total, 1);
+    var pts = day.cum.map(function (v, i) {
+      return [i / STEPS * w, top + (1 - v / max) * (h - top - bottom)];
+    });
+    var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+    var chart = {
+      w: w, line: line, area: line + ' L' + w.toFixed(1) + ',' + h + ' L0,' + h + ' Z',
+      endX: pts[STEPS][0], endY: pts[STEPS][1],
+      g1: (top + (h - top - bottom) * 0.25).toFixed(1), g2: (top + (h - top - bottom) * 0.5).toFixed(1), g3: (top + (h - top - bottom) * 0.75).toFixed(1)
+    };
+    var hover = { show: false, left: 0, top: 0, shift: -50, text: '' };
+    if (st.hover !== null && showLive) {
+      var hi = st.hover;
+      hover = {
+        show: true, left: pts[hi][0], top: pts[hi][1],
+        shift: hi > 8 ? -100 : (hi < 3 ? 0 : -50),
+        text: (9 + hi) + ':00 · MVR ' + fmt(day.cum[hi])
+      };
+    }
+
+    var self = this;
+    return {
+      themeClass: dark ? 'dark' : '',
+      accent: accent,
+      days: days.map(function (d) {
+        var active = d.k === st.idx;
+        return {
+          k: d.k, label: d.label,
+          bg: active ? accent : surface,
+          fg: active ? '#ffffff' : (d.total === 0 ? ink3 : ink2),
+          shadow: active ? '0 6px 14px -6px rgba(0,0,0,0.35)' : '0 1px 2px rgba(13,31,28,0.06)',
+          pick: function () { self.go(d.k); }
+        };
+      }),
+      day: day,
+      nav: {
+        prev: function () { self.go(st.idx - 1); },
+        next: function () { self.go(st.idx + 1); },
+        prevOpacity: st.idx === 0 ? 0.35 : 1,
+        nextOpacity: st.idx === days.length - 1 ? 0.35 : 1
+      },
+      showLoading: showLoading, showEmpty: showEmpty, showLive: showLive,
+      showList: showLoading || showLive,
+      heroSpan: showEmpty ? '1 / -1' : 'auto',
+      anim: anim,
+      totalText: fmt(showLive ? st.shown : 0),
+      delta: delta,
+      chart: chart,
+      hover: hover,
+      countText: day.count + (day.count === 1 ? ' product' : ' products'),
+      products: day.products.map(function (p, i) {
+        return {
+          rank: i + 1, name: p.name,
+          qtyText: fmt(p.qty) + (p.qty === 1 ? ' unit' : ' units'),
+          totalText: fmt(p.total),
+          delay: Math.min(i, 12) * 35 + 'ms',
+          badgeBg: i === 0 ? accent : muted,
+          badgeFg: i === 0 ? '#ffffff' : ink2
+        };
+      }),
+      chartMove: function (e) {
+        var rect = e.currentTarget.getBoundingClientRect();
+        var frac = (e.clientX - rect.left) / Math.max(rect.width, 1);
+        var i = Math.max(0, Math.min(STEPS, Math.round(frac * STEPS)));
+        if (i !== self.state.hover) self.setState({ hover: i });
+      },
+      chartLeave: function () { if (self.state.hover !== null) self.setState({ hover: null }); },
+      touchStart: function (e) { var t = e.touches && e.touches[0]; if (t) self.touch = { x: t.clientX, y: t.clientY }; },
+      touchEnd: function (e) { var t = e.changedTouches && e.changedTouches[0]; if (t) self.swipeEnd(t.clientX, t.clientY); },
+      mouseDown: function (e) { self.touch = { x: e.clientX, y: e.clientY }; },
+      mouseUp: function (e) { self.swipeEnd(e.clientX, e.clientY); },
+      onKey: function (e) {
+        if (e.key === 'ArrowRight') self.go(self.state.idx + 1);
+        else if (e.key === 'ArrowLeft') self.go(self.state.idx - 1);
+      },
+      stripRef: this.stripRef,
+      chartRef: this.chartRef
+    };
+  }
+}
+</script>
+</body>
+</html>

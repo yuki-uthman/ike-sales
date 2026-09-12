@@ -2,6 +2,7 @@ name: Refresh sales data
 
 on:
   schedule:
+    # re-registered after the repo rename (yuki-uthman/ike-sales)
     - cron: "*/15 * * * *"
   workflow_dispatch: {}
 

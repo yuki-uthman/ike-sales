@@ -1,0 +1,10 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Phone · 390", "x": 0, "y": 0, "w": 390, "h": 844, "is_interactive": true },
+    { "file": "Desktop.dc.html", "title": "Desktop · 1440", "x": 480, "y": 0, "w": 1440, "h": 900, "is_interactive": true }
+  ],
+  "annotations": [
+    { "id": "how-to-use", "x": 0, "y": -150, "w": 390, "text": "Working prototype. Swipe left or right, tap a day pill, use the arrows, or press the arrow keys to move between days.\n\nTweaks above each frame: Dark theme, Accent color, and State (live / loading / empty). Fri 4 Sep is a day with no sales." }
+  ],
+  "launch": { "view": "canvas" }
+}
