@@ -20,11 +20,11 @@ Claude subscription: GitHub Actions pulls the data, GitHub Pages serves the page
    `https://<your-username>.github.io/ike-today-sales/`.
 
 3. **Run the workflow once manually** to seed real data immediately instead of
-   waiting for the next 30-minute tick: Actions tab → "Refresh sales data" →
+   waiting for the next 15-minute tick: Actions tab → "Refresh sales data" →
    Run workflow.
 
 That's it — from then on, `.github/workflows/refresh-sales.yml` runs every
-30 minutes, recomputes today's totals, and commits `data/sales.json`, which
+15 minutes, recomputes today's totals, and commits `data/sales.json`, which
 the page reads directly.
 
 ## How the numbers are computed
@@ -42,7 +42,8 @@ the page reads directly.
 
 - **Refresh frequency**: edit the `cron` line in
   `.github/workflows/refresh-sales.yml` (GitHub's practical minimum is 5
-  minutes; every 30 minutes is the current setting).
+  minutes, though sub-15-minute schedules can occasionally be delayed or
+  skipped under platform load; every 15 minutes is the current setting).
 - **Odoo URL / database / username**: plain values in the same workflow file
   (only the API key is a secret).
 - The workflow commits to the repo on every run, which also means it never
