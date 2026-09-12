@@ -6,342 +6,464 @@
 <title>Ike Sales</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
 <style>
-  :root {
-    color-scheme: light;
-    --bg-page:        #f4f7f6;
-    --surface:        #ffffff;
-    --surface-muted:  #edf2f0;
-    --text-primary:   #0d1f1c;
-    --text-secondary: #4c5f5b;
-    --text-muted:     #7c8c88;
-    --border:         rgba(13,31,28,0.10);
-    --accent:         #0f6f68;
-    --accent-strong:  #0b5750;
-    --series-total:   #2a78d6;
-    --gridline:       #e1e6e4;
-    --shadow: 0 1px 2px rgba(13,31,28,0.06), 0 8px 24px -12px rgba(13,31,28,0.18);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --bg-page:        #0b1614;
-      --surface:        #11201d;
-      --surface-muted:  #162622;
-      --text-primary:   #f2f6f5;
-      --text-secondary: #b7c6c2;
-      --text-muted:     #82938e;
-      --border:         rgba(255,255,255,0.10);
-      --accent:         #29b3a6;
-      --accent-strong:  #4bcabe;
-      --series-total:   #3987e5;
-      --gridline:       #223330;
-      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --bg-page:        #0b1614;
-    --surface:        #11201d;
-    --surface-muted:  #162622;
-    --text-primary:   #f2f6f5;
-    --text-secondary: #b7c6c2;
-    --text-muted:     #82938e;
-    --border:         rgba(255,255,255,0.10);
-    --accent:         #29b3a6;
-    --accent-strong:  #4bcabe;
-    --series-total:   #3987e5;
-    --gridline:       #223330;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
-  }
-
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     margin: 0;
-    background: var(--bg-page);
-    color: var(--text-primary);
+    background: #f4f7f6;
     font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
-    padding: 32px 20px 64px;
+    -webkit-font-smoothing: antialiased;
   }
-  .page {
-    max-width: 880px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  @media (prefers-color-scheme: dark) { body { background: #0b1614; } }
+
+  .app {
+    --bg: #f4f7f6; --surface: #ffffff; --muted: #edf2f0; --ink: #0d1f1c; --ink2: #4c5f5b; --ink3: #7c8c88;
+    --border: rgba(13,31,28,0.08); --grid: #e1e6e4; --skel: #e6ebe9; --skel2: #f1f4f3;
+    --accent: #0f6f68;
+    --shadow: 0 1px 2px rgba(13,31,28,0.05), 0 12px 32px -16px rgba(13,31,28,0.22);
+    height: 100vh; height: 100dvh;
+    background: var(--bg); color: var(--ink);
+    display: flex; flex-direction: column; overflow: hidden; outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (prefers-color-scheme: dark) {
+    .app {
+      --bg: #0b1614; --surface: #11201d; --muted: #162622; --ink: #f2f6f5; --ink2: #b7c6c2; --ink3: #82938e;
+      --border: rgba(255,255,255,0.08); --grid: #223330; --skel: #1a2b27; --skel2: #20332e;
+      --accent: #29b3a6;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 14px 32px -16px rgba(0,0,0,0.6);
+    }
   }
 
-  header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px 20px;
-  }
-  .brand { display: flex; flex-direction: column; gap: 4px; }
-  .eyebrow {
-    font-family: "Manrope", sans-serif;
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-  h1 {
-    font-family: "Manrope", sans-serif;
-    font-weight: 800;
-    font-size: 28px;
-    margin: 0;
-    letter-spacing: -0.01em;
-    text-wrap: balance;
-  }
-  .as-of { text-align: right; color: var(--text-secondary); font-size: 14px; }
-  .as-of strong { color: var(--text-primary); font-weight: 600; }
+  .shell { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 18px 16px 10px; width: 100%; max-width: 1160px; margin: 0 auto; }
+  .topbar { display: flex; flex-direction: column; gap: 12px; }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .eyebrow { font-family: Manrope, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink3); }
+  .title { font-family: Manrope, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
+  .pillswrap { position: relative; min-width: 0; }
+  .pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
+  .fade { position: absolute; top: 0; bottom: 0; left: 0; width: 96px; background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 38%, rgba(244,247,246,0) 100%); pointer-events: none; transition: opacity 0.25s; opacity: 0; }
+  @media (prefers-color-scheme: dark) { .fade { background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 38%, rgba(11,22,20,0) 100%); } }
+  .pills::-webkit-scrollbar { display: none; }
+  .pill { flex: 0 0 auto; height: 36px; padding: 0 14px; border-radius: 999px; border: 0; font-family: "Source Sans 3", system-ui, sans-serif; font-weight: 600; font-size: 13px; line-height: 1; cursor: pointer; transition: background 0.2s, color 0.2s, box-shadow 0.2s; }
 
-  .hero {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
-    padding: 28px 28px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .hero-label { font-size: 14px; color: var(--text-secondary); }
-  .hero-figure {
-    font-family: "Manrope", sans-serif;
-    font-weight: 800;
-    font-size: clamp(40px, 8vw, 56px);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-  }
-  .hero-figure .unit { font-size: 20px; font-weight: 700; color: var(--text-secondary); }
+  .daterow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 2px 0; }
+  .dayname { font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; line-height: 1.15; }
+  .daydate { font-size: 13px; color: var(--ink2); margin-top: 2px; }
 
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px 22px 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .card-title { font-family: "Manrope", sans-serif; font-weight: 700; font-size: 15px; }
+  .main { flex: 1; min-height: 0; display: flex; flex-direction: column; user-select: none; -webkit-user-select: none; touch-action: pan-y; }
+  .content { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); }
+  .hero { padding: 18px 18px 14px; display: flex; flex-direction: column; }
+  .total { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; font-family: Manrope, sans-serif; font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
+  .cur { font-size: 15px; font-weight: 700; color: var(--ink2); letter-spacing: 0.02em; }
+  .delta { display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 600; margin-top: 8px; }
+  .chart { display: flex; align-items: stretch; gap: 10px; height: 150px; margin-top: 18px; }
+  .axis { position: relative; flex: 0 0 30px; margin-top: 20px; margin-bottom: 19px; }
+  .axis span { position: absolute; right: 0; transform: translateY(-50%); font-size: 10.5px; color: var(--ink3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .plot { position: relative; flex: 1; min-width: 0; display: flex; align-items: stretch; gap: 6px; }
+  .grid { position: absolute; left: 0; right: 0; top: 20px; bottom: 19px; pointer-events: none; }
+  .grid i { position: absolute; left: 0; right: 0; height: 1px; background: var(--grid); font-style: normal; }
+  .bar { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+  .barval { height: 14px; line-height: 14px; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--ink2); white-space: nowrap; transition: opacity 0.15s; }
+  .bar:hover .barval { opacity: 1 !important; }
+  .barcol { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .barfill { width: 70%; max-width: 30px; min-height: 3px; border-radius: 5px 5px 2px 2px; transform-origin: bottom; }
+  .barlbl { height: 13px; line-height: 13px; font-size: 11px; color: var(--ink3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .list { display: flex; flex-direction: column; min-height: 0; }
+  .listhead { display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; }
+  .listtitle { font-family: Manrope, sans-serif; font-weight: 700; font-size: 15px; }
+  .count { font-size: 12.5px; color: var(--ink3); }
+  .rows { flex: 1; min-height: 0; overflow-y: auto; padding: 0 8px 8px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; }
+  .row:hover { background: var(--muted); }
+  .rank { flex: 0 0 24px; height: 24px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pname { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .pn { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .pq { font-size: 12px; color: var(--ink3); }
+  .pt { font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sk { background: linear-gradient(90deg, var(--skel) 25%, var(--skel2) 50%, var(--skel) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 8px; }
+  .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 16px 12px 8px; color: var(--ink2); }
+  .empty-title { font-family: Manrope, sans-serif; font-weight: 700; font-size: 17px; color: var(--ink); margin-top: 6px; }
 
-  .trend-wrap { overflow-x: auto; }
-  .trend { display: flex; align-items: flex-end; gap: 14px; height: 150px; min-width: 100%; padding-top: 20px; }
-  .trend-col {
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-    gap: 6px; flex: 1 0 44px; height: 100%; cursor: pointer; position: relative;
-  }
-  .trend-val { font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--text-secondary); white-space: nowrap; }
-  .trend-bar { width: 26px; border-radius: 5px 5px 2px 2px; background: var(--series-total); opacity: 0.55; transition: opacity 0.15s ease; }
-  .trend-col.current .trend-bar { background: var(--accent); opacity: 1; }
-  .trend-col:hover .trend-bar { opacity: 0.85; }
-  .trend-day { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-  .trend-col.current .trend-day { color: var(--text-primary); font-weight: 600; }
+  .state-msg { margin: auto; max-width: 420px; text-align: center; color: var(--ink2); font-size: 14.5px; padding: 24px; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  thead th {
-    text-align: right; font-weight: 600; color: var(--text-muted); font-size: 11.5px;
-    text-transform: uppercase; letter-spacing: 0.04em; padding: 0 0 8px; border-bottom: 1px solid var(--gridline);
-  }
-  thead th:first-child { text-align: left; }
-  tbody td { padding: 9px 0; border-bottom: 1px solid var(--gridline); text-align: right; font-variant-numeric: tabular-nums; }
-  tbody td:first-child { text-align: left; font-variant-numeric: initial; }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr.current td { font-weight: 700; color: var(--accent-strong); }
-  tbody tr { cursor: pointer; }
-  tbody tr:hover td { background: var(--surface-muted); }
+  footer { flex: 0 0 auto; font-size: 11px; color: var(--ink3); line-height: 1.5; padding: 6px 2px 0; }
+  footer code { background: var(--muted); padding: 1px 5px; border-radius: 4px; font-size: 10.5px; }
 
-  .rank-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 20px; height: 20px; border-radius: 6px;
-    background: var(--surface-muted); color: var(--text-secondary);
-    font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
-  }
-  #productsBody tr:nth-child(1) .rank-badge { background: var(--accent); color: #fff; }
-  .product-name { display: block; }
-  .product-scroll { max-height: 420px; overflow-y: auto; overflow-x: auto; }
-  .product-scroll table { min-width: 420px; }
-  .product-scroll table thead th { position: sticky; top: 0; background: var(--surface); }
+  @keyframes rise-a { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes rise-b { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes slide-older-a { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+  @keyframes slide-older-b { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+  @keyframes slide-newer-a { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+  @keyframes slide-newer-b { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+  @keyframes grow-a { from { transform: scaleY(0); } to { transform: none; } }
+  @keyframes grow-b { from { transform: scaleY(0); } to { transform: none; } }
+  @keyframes fade-a { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fade-b { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-  footer { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; padding-top: 4px; }
-  footer code { background: var(--surface-muted); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
-
-  .state-msg {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-    padding: 28px; text-align: center; color: var(--text-secondary); font-size: 14.5px;
-  }
-
-  @media (max-width: 640px) {
-    body { padding: 22px 14px 48px; }
-    .page { gap: 16px; }
-    .hero { padding: 20px 18px 18px; border-radius: 14px; }
-    .card { padding: 16px 16px 18px; border-radius: 14px; }
-    thead th { padding-right: 4px; }
-    tbody td { padding: 11px 4px 11px 0; }
-    table { font-size: 12.5px; }
-  }
-  @media (max-width: 480px) {
-    h1 { font-size: 22px; }
-    .eyebrow { font-size: 11px; }
-    header { flex-direction: column; align-items: flex-start; gap: 6px; }
-    .as-of { text-align: left; font-size: 13px; }
-    .hero-figure { font-size: clamp(34px, 11vw, 44px); gap: 8px; }
-    .hero-figure .unit { font-size: 16px; }
-    .trend { gap: 8px; }
-    .trend-col { flex-basis: 34px; }
-    .trend-bar { width: 20px; }
-    .trend-val { font-size: 10.5px; }
-    .trend-day { font-size: 10px; }
+  @media (min-width: 900px) {
+    .shell { padding: 36px 40px 20px; gap: 20px; }
+    .topbar { flex-direction: row; align-items: center; justify-content: space-between; }
+    .title { font-size: 22px; }
+    .content { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 22px; }
+    .hero { padding: 28px 28px 22px; }
+    .dayname { font-size: 26px; }
+    .daydate { font-size: 14px; }
+    .total { font-size: 64px; margin-top: 8px; }
+    .cur { font-size: 20px; }
+    .delta { font-size: 14.5px; margin-top: 12px; }
+    .chart { height: 240px; margin-top: auto; }
+    .plot { gap: 10px; }
+    .listhead { padding: 22px 24px 10px; }
+    .row { padding: 13px 14px; }
+    .empty { padding: 30px 12px 20px; }
   }
 </style>
 </head>
 <body>
 
-<div class="page">
-  <header>
-    <div class="brand">
-      <span class="eyebrow">MRH Investment</span>
-      <h1>Ike Sales</h1>
+<div class="app" id="app" tabindex="0">
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <span class="title">Ike Sales</span>
+        <span class="eyebrow">MRH Investment</span>
+      </div>
+      <div class="pillswrap">
+        <div class="pills" id="pills"></div>
+        <div class="fade" id="fade"></div>
+      </div>
     </div>
-    <div class="as-of" id="asOf"></div>
-  </header>
 
-  <div id="app">
-    <div class="state-msg" id="loading">Loading today's sales…</div>
+    <div class="daterow">
+      <div>
+        <div class="dayname" id="dayname">&nbsp;</div>
+        <div class="daydate" id="daydate">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="main" id="main">
+      <div class="content" id="content"></div>
+    </div>
+
+    <footer>
+      Total sales = completed Point of Sale orders + confirmed Sales Orders, each counted once even when a sales order
+      is settled through the POS register. Unconfirmed quotations are not included. Figures are pulled from
+      <code>mrh-investment.odoo.com</code> and refresh automatically every 15 minutes.
+    </footer>
   </div>
-
-  <footer>
-    Total sales = completed Point of Sale orders + confirmed Sales Orders, each counted once even when a sales order
-    is settled through the POS register. Unconfirmed quotations are not included. Products sold are the same orders
-    broken down by item and ranked by sales value, highest first. Figures are pulled from
-    <code>mrh-investment.odoo.com</code> and refresh automatically every 15 minutes.
-  </footer>
 </div>
 
 <script>
 (function () {
+  var DAYN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
   function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
-
-  function dayLabel(dateStr, opts) {
-    var d = new Date(dateStr + 'T00:00:00Z');
-    return d.toLocaleDateString('en-GB', opts || { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  function compact(n) {
+    if (n < 1000) return fmt(n);
+    var k = n / 1000;
+    return (Math.round(k * 10) / 10).toString().replace(/\.0$/, '') + 'k';
   }
-
-  function shortLabel(dateStr) {
-    var d = new Date(dateStr + 'T00:00:00Z');
-    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  function niceCeil(n) {
+    var exp = Math.pow(10, Math.floor(Math.log10(n)));
+    var f = n / exp, steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+    for (var i = 0; i < steps.length; i++) { if (steps[i] >= f) return steps[i] * exp; }
+    return 10 * exp;
   }
-
-  function total(day) { return day.pos.total + day.regularSales.total; }
-
-  function buildApp() {
-    document.getElementById('app').innerHTML =
-      '<div class="hero">' +
-        '<div class="hero-label" id="heroLabel">Total sales</div>' +
-        '<div class="hero-figure"><span class="unit">MVR</span><span id="heroValue">—</span></div>' +
-      '</div>' +
-      '<div class="card"><div class="card-title">Recent days</div><div class="trend-wrap"><div class="trend" id="trendChart"></div></div></div>' +
-      '<div class="card"><div class="card-title" id="productsTitle">Products sold</div><div class="product-scroll"><table>' +
-        '<thead><tr><th style="text-align:left">#</th><th style="text-align:left">Product</th><th>Qty</th><th>Total</th></tr></thead>' +
-        '<tbody id="productsBody"></tbody></table></div></div>' +
-      '<div class="card"><div class="card-title">History</div><div style="overflow-x:auto"><table>' +
-        '<thead><tr><th>Date</th><th>Total</th></tr></thead>' +
-        '<tbody id="historyBody"></tbody></table></div></div>';
+  function stripCode(name) {
+    return String(name).replace(/^\[[^\]]*\]\s*/, '').trim();
   }
-
-  function render(days, idx) {
-    var day = days[idx];
-    var isLatest = idx === days.length - 1;
-
-    document.getElementById('heroLabel').textContent = 'Total sales — ' + dayLabel(day.date);
-    document.getElementById('heroValue').textContent = fmt(total(day));
-
-    var asOf = document.getElementById('asOf');
-    if (isLatest) {
-      var gen = new Date(day.generatedAt);
-      var genMv = new Date(gen.getTime() + 5 * 3600 * 1000);
-      var hh = String(genMv.getUTCHours()).padStart(2, '0');
-      var mm = String(genMv.getUTCMinutes()).padStart(2, '0');
-      asOf.innerHTML = 'Updated <strong>' + hh + ':' + mm + '</strong> Maldives time';
-    } else {
-      asOf.innerHTML = 'Viewing <strong>' + shortLabel(day.date) + '</strong>';
-    }
-
-    renderHistoryTable(days, idx);
-    renderTrend(days, idx);
-    renderProducts(day);
-  }
-
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
 
-  function renderProducts(day) {
-    var title = document.getElementById('productsTitle');
-    var body = document.getElementById('productsBody');
-    var products = day.products || [];
+  // ---- Build view-model days from data/sales.json (k=0 today ... k=N-1 oldest) ----
+  function buildViewDays(rawDays) {
+    var asc = rawDays.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    var arr = asc.slice().reverse(); // today first
+    return arr.map(function (rd, k) {
+      var d = new Date(rd.date + 'T00:00:00Z');
+      var wd = DAYN[d.getUTCDay()], dn = d.getUTCDate(), mo = MON[d.getUTCMonth()], yr = d.getUTCFullYear();
+      var total = (rd.pos ? rd.pos.total : 0) + (rd.regularSales ? rd.regularSales.total : 0);
 
-    title.textContent = 'Products sold (' + dayLabel(day.date, { day: 'numeric', month: 'short' }) + ')';
+      var aggMap = {};
+      (rd.products || []).forEach(function (p) {
+        var name = stripCode(p.name);
+        var a = aggMap[name] || (aggMap[name] = { name: name, qty: 0, total: 0 });
+        a.qty += p.qty; a.total += p.total;
+      });
+      var products = Object.keys(aggMap).map(function (n) { return aggMap[n]; })
+        .sort(function (a, b) { return b.total - a.total || a.name.localeCompare(b.name); });
 
-    if (!products.length) {
-      body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No product breakdown for this day</td></tr>';
-      return;
-    }
-
-    body.innerHTML = products.map(function (p, i) {
-      return '<tr>' +
-        '<td style="text-align:left"><span class="rank-badge">' + (i + 1) + '</span></td>' +
-        '<td style="text-align:left"><span class="product-name">' + escapeHtml(p.name) + '</span></td>' +
-        '<td>' + fmt(p.qty) + '</td>' +
-        '<td>' + fmt(p.total) + '</td>' +
-        '</tr>';
-    }).join('');
-  }
-
-  function renderHistoryTable(days, selectedIndex) {
-    var body = document.getElementById('historyBody');
-    var rows = days.slice().reverse().slice(0, 14);
-    body.innerHTML = rows.map(function (day) {
-      var idx = days.indexOf(day);
-      var cur = idx === selectedIndex ? ' current' : '';
-      return '<tr class="row' + cur + '" data-idx="' + idx + '">' +
-        '<td>' + dayLabel(day.date, { day: 'numeric', month: 'short', year: 'numeric' }) + '</td>' +
-        '<td>' + fmt(total(day)) + '</td>' +
-        '</tr>';
-    }).join('');
-    Array.prototype.forEach.call(body.querySelectorAll('tr'), function (tr) {
-      tr.addEventListener('click', function () { render(days, parseInt(tr.getAttribute('data-idx'), 10)); });
+      return {
+        k: k, date: rd.date, wd: wd, dn: dn, total: total, products: products, count: products.length,
+        label: k === 0 ? 'Today' : wd.slice(0, 3) + ' ' + dn,
+        dateFull: dn + ' ' + mo + ' ' + yr,
+        short: wd.slice(0, 3) + ' ' + dn + ' ' + mo.slice(0, 3)
+      };
     });
   }
 
-  function renderTrend(days, selectedIndex) {
-    var recent = days.slice(-14);
-    var max = Math.max.apply(null, recent.map(total).concat([1]));
-    var el = document.getElementById('trendChart');
-    el.innerHTML = recent.map(function (day) {
-      var h = Math.max((total(day) / max) * 100, 4);
-      var idx = days.indexOf(day);
-      var cur = idx === selectedIndex ? ' current' : '';
-      return '<div class="trend-col' + cur + '" data-idx="' + idx + '">' +
-        '<div class="trend-val">' + fmt(total(day)) + '</div>' +
-        '<div class="trend-bar" style="height:' + h + '%"></div>' +
-        '<div class="trend-day">' + shortLabel(day.date) + '</div>' +
+  // ---- App ----
+  var appEl = document.getElementById('app');
+  var pillsEl = document.getElementById('pills');
+  var fadeEl = document.getElementById('fade');
+  var daynameEl = document.getElementById('dayname');
+  var daydateEl = document.getElementById('daydate');
+  var mainEl = document.getElementById('main');
+  var contentEl = document.getElementById('content');
+
+  var days = [];
+  var state = { idx: 0, loading: true, shown: 0, dir: 'older', tick: 0, cw: 322 };
+  var touch = null, timer = null, raf = null, ro = null;
+
+  function go(i, dir) {
+    if (i < 0 || i >= days.length || i === state.idx) return;
+    load(i, dir || (i > state.idx ? 'older' : 'newer'));
+  }
+
+  function load(i, dir) {
+    clearTimeout(timer);
+    if (raf) cancelAnimationFrame(raf);
+    state.loading = true; state.idx = i; state.dir = dir; state.shown = 0;
+    renderAll();
+    timer = setTimeout(function () {
+      state.loading = false; state.tick = state.tick + 1;
+      renderAll();
+      var day = days[state.idx];
+      if (day && day.total > 0) countUp(day.total); else setTotalText(0);
+    }, 420);
+  }
+
+  function countUp(total) {
+    var start = null, dur = 700;
+    function step(t) {
+      if (start === null) start = t;
+      var p = Math.min(1, (t - start) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      state.shown = total * e;
+      setTotalText(state.shown);
+      if (p < 1) raf = requestAnimationFrame(step);
+    }
+    raf = requestAnimationFrame(step);
+  }
+  function setTotalText(v) {
+    var el = document.getElementById('heroValue');
+    if (el) el.textContent = fmt(v);
+  }
+
+  function swipeEnd(x, y) {
+    if (!touch) return;
+    var dx = x - touch.x, dy = y - touch.y;
+    touch = null;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx > 0) go(state.idx + 1); else go(state.idx - 1);
+    }
+  }
+
+  mainEl.addEventListener('touchstart', function (e) { var t = e.touches && e.touches[0]; if (t) touch = { x: t.clientX, y: t.clientY }; }, { passive: true });
+  mainEl.addEventListener('touchend', function (e) { var t = e.changedTouches && e.changedTouches[0]; if (t) swipeEnd(t.clientX, t.clientY); });
+  mainEl.addEventListener('mousedown', function (e) { touch = { x: e.clientX, y: e.clientY }; });
+  mainEl.addEventListener('mouseup', function (e) { swipeEnd(e.clientX, e.clientY); });
+  appEl.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') go(state.idx + 1);
+    else if (e.key === 'ArrowRight') go(state.idx - 1);
+  });
+
+  // ---- Pills (built once, updated in place) ----
+  function buildPills() {
+    var ordered = days.slice().reverse(); // oldest left, today right
+    pillsEl.innerHTML = ordered.map(function (d) {
+      return '<button class="pill" data-idx="' + d.k + '">' + escapeHtml(d.label) + '</button>';
+    }).join('');
+    pillsEl.addEventListener('click', function (e) {
+      var btn = e.target.closest('.pill');
+      if (!btn) return;
+      go(parseInt(btn.getAttribute('data-idx'), 10));
+    });
+    pillsEl.addEventListener('scroll', function () { syncFade(); });
+    requestAnimationFrame(function () {
+      try { pillsEl.scrollLeft = pillsEl.scrollWidth; } catch (e) {}
+      syncFade();
+    });
+  }
+  function syncFade() {
+    fadeEl.style.opacity = pillsEl.scrollLeft > 2 ? '1' : '0';
+  }
+  function updatePillStyles() {
+    Array.prototype.forEach.call(pillsEl.querySelectorAll('.pill'), function (btn) {
+      var k = parseInt(btn.getAttribute('data-idx'), 10);
+      var d = days[k];
+      var active = k === state.idx;
+      btn.style.background = active ? 'var(--accent)' : 'var(--surface)';
+      btn.style.color = active ? '#ffffff' : (d.total === 0 ? 'var(--ink3)' : 'var(--ink2)');
+      btn.style.boxShadow = active ? '0 6px 14px -6px rgba(0,0,0,0.35)' : '0 1px 2px rgba(13,31,28,0.06)';
+    });
+    var active = pillsEl.querySelector('[data-idx="' + state.idx + '"]');
+    if (active) {
+      try {
+        pillsEl.scrollTo({ left: Math.max(0, active.offsetLeft - pillsEl.clientWidth / 2 + active.offsetWidth / 2), behavior: 'smooth' });
+      } catch (e) {}
+    }
+  }
+
+  // ---- Chart (axis + bars), isolated so a resize can refresh it without retriggering entrance animations ----
+  function computeBars() {
+    var maxBars = Math.max(5, Math.floor(state.cw / 36));
+    var first = state.idx >= maxBars ? state.idx - maxBars + 1 : 0;
+    var win = days.slice(first, first + maxBars);
+    var rawPeak = Math.max(1, Math.max.apply(null, win.map(function (d) { return d.total; })));
+    var peak = niceCeil(rawPeak);
+    var bars = win.slice().reverse().map(function (d, i) {
+      var sel = d.k === state.idx;
+      return {
+        k: d.k, label: String(d.dn),
+        value: d.total >= 10000 ? (d.total / 1000).toFixed(1) + 'k' : fmt(d.total),
+        h: Math.max(0, d.total / peak * 100),
+        sel: sel, delay: (i * 40) + 'ms'
+      };
+    });
+    return { peak: peak, bars: bars };
+  }
+
+  function chartHtml() {
+    var c = computeBars();
+    var axisHtml = '<div class="axis"><span style="top:0">' + compact(c.peak) + '</span><span style="top:50%">' + compact(c.peak / 2) + '</span><span style="top:100%">0</span></div>';
+    var barsHtml = c.bars.map(function (b) {
+      return '<div class="bar" data-k="' + b.k + '">' +
+        '<div class="barval" style="opacity:' + (b.sel ? 1 : 0) + '">' + b.value + '</div>' +
+        '<div class="barcol"><div class="barfill" style="height:' + b.h + '%;background:' + (b.sel ? 'var(--accent)' : 'var(--ink3)') + ';opacity:' + (b.sel ? 1 : 0.32) + ';animation:grow-' + parity() + ' 600ms cubic-bezier(0.2,0.8,0.2,1) ' + b.delay + ' both"></div></div>' +
+        '<div class="barlbl" style="color:' + (b.sel ? 'var(--ink)' : 'var(--ink3)') + ';font-weight:' + (b.sel ? 700 : 400) + '">' + b.label + '</div>' +
         '</div>';
     }).join('');
-    Array.prototype.forEach.call(el.querySelectorAll('.trend-col'), function (col) {
-      col.addEventListener('click', function () { render(days, parseInt(col.getAttribute('data-idx'), 10)); });
+    return '<div class="chart">' + axisHtml + '<div class="plot" id="chartPlot"><div class="grid"><i style="top:0"></i><i style="top:50%"></i><i style="top:100%"></i></div>' + barsHtml + '</div></div>';
+  }
+
+  function attachChartObserver() {
+    if (ro) { try { ro.disconnect(); } catch (e) {} ro = null; }
+    var plot = document.getElementById('chartPlot');
+    if (!plot || typeof ResizeObserver === 'undefined') return;
+    ro = new ResizeObserver(function (entries) {
+      var r = entries[0] && entries[0].contentRect;
+      if (r && r.width > 0 && Math.abs(r.width - state.cw) > 1) {
+        state.cw = r.width;
+        refreshChart();
+      }
     });
+    ro.observe(plot);
+  }
+  function refreshChart() {
+    var wrap = document.getElementById('chartWrap');
+    if (!wrap) return;
+    wrap.innerHTML = chartHtml();
+    attachChartObserver();
+  }
+
+  function parity() { return state.tick % 2 ? 'b' : 'a'; }
+
+  // ---- Full content render (hero + list) on day change ----
+  function contentHtml() {
+    var day = days[state.idx];
+    var showLoading = state.loading;
+    var showEmpty = !showLoading && (!day || day.total === 0);
+    var showLive = !showLoading && !showEmpty;
+    var pr = parity();
+
+    var heroInner = '';
+    if (showLoading) {
+      heroInner =
+        '<div class="sk" style="width:62%;height:44px;margin-top:16px"></div>' +
+        '<div class="sk" style="width:38%;height:14px;margin-top:12px"></div>' +
+        '<div class="sk" style="height:140px;margin-top:18px;border-radius:12px"></div>';
+    } else if (showEmpty) {
+      heroInner =
+        '<div class="empty" style="animation: rise-' + pr + ' 500ms cubic-bezier(0.2,0.8,0.2,1) both">' +
+        '<svg width="40" height="40" fill="none" stroke="currentColor" style="stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;color:var(--ink3)"><circle cx="20" cy="20" r="14"></circle><path d="M13.5 20h13"></path></svg>' +
+        '<div class="empty-title">No sales on ' + escapeHtml(day ? day.short : '') + '</div>' +
+        '<div>No orders were recorded on this day.</div>' +
+        '</div>';
+    } else {
+      var prev = days[state.idx + 1];
+      var deltaHtml = '';
+      if (prev && prev.total > 0 && day.total > 0) {
+        var pct = (day.total - prev.total) / prev.total * 100;
+        var up = pct >= 0;
+        var color = up ? 'var(--accent)' : 'var(--ink2)';
+        var rot = up ? 0 : 180;
+        var text = (up ? '+' : '−') + Math.abs(pct).toFixed(1) + '% vs ' + (state.idx === 0 ? 'yesterday' : prev.wd.slice(0, 3));
+        deltaHtml = '<div class="delta" style="color:' + color + ';animation: rise-' + pr + ' 500ms cubic-bezier(0.2,0.8,0.2,1) 80ms both">' +
+          '<svg width="14" height="14" fill="none" stroke="currentColor" style="stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transform:rotate(' + rot + 'deg)"><path d="M7 12V2M2.5 6.5L7 2l4.5 4.5"></path></svg>' +
+          '<span>' + text + '</span></div>';
+      }
+      heroInner =
+        '<div class="total" style="animation: rise-' + pr + ' 500ms cubic-bezier(0.2,0.8,0.2,1) both"><span class="cur">MVR</span><span id="heroValue">0</span></div>' +
+        deltaHtml +
+        '<div id="chartWrap">' + chartHtml() + '</div>';
+    }
+
+    var showList = showLoading || showLive;
+    var heroSpan = showEmpty ? '1 / -1' : 'auto';
+    var listHtml = '';
+    if (showList) {
+      var rowsInner = '';
+      if (showLoading) {
+        rowsInner = '<div style="display:flex;flex-direction:column;gap:14px;padding:8px 10px">' +
+          '<div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div>' +
+          '<div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div></div>';
+      } else {
+        rowsInner = day.products.map(function (p, i) {
+          var badgeBg = i === 0 ? 'var(--accent)' : 'var(--muted)';
+          var badgeFg = i === 0 ? '#ffffff' : 'var(--ink2)';
+          var delay = Math.min(i, 12) * 35 + 'ms';
+          return '<div class="row" style="animation: rise-' + pr + ' 420ms cubic-bezier(0.2,0.8,0.2,1) both;animation-delay:' + delay + '">' +
+            '<span class="rank" style="background:' + badgeBg + ';color:' + badgeFg + '">' + (i + 1) + '</span>' +
+            '<span class="pname"><span class="pn">' + escapeHtml(p.name) + '</span><span class="pq">' + fmt(p.qty) + (p.qty === 1 ? ' unit' : ' units') + '</span></span>' +
+            '<span class="pt">' + fmt(p.total) + '</span>' +
+            '</div>';
+        }).join('');
+      }
+      var countText = showLoading ? '' : (day.count + (day.count === 1 ? ' product' : ' products'));
+      listHtml = '<div class="card list">' +
+        '<div class="listhead"><span class="listtitle">Products sold</span><span class="count">' + countText + '</span></div>' +
+        '<div class="rows">' + rowsInner + '</div>' +
+        '</div>';
+    }
+
+    var slideAnim = 'slide-' + state.dir + '-' + pr;
+    return '<div class="content" id="content" style="animation: ' + slideAnim + ' 380ms cubic-bezier(0.2,0.8,0.2,1) both">' +
+      '<div class="card hero" style="grid-column: ' + heroSpan + '">' + heroInner + '</div>' +
+      listHtml +
+      '</div>';
+  }
+
+  function renderAll() {
+    var day = days[state.idx];
+    if (day) {
+      daynameEl.textContent = day.wd;
+      daydateEl.textContent = day.dateFull;
+    }
+    contentEl.outerHTML = contentHtml();
+    contentEl = document.getElementById('content'); // outerHTML detaches the old node; re-acquire the new one
+
+    contentEl.addEventListener('click', function (e) {
+      var bar = e.target.closest('.bar');
+      if (bar) go(parseInt(bar.getAttribute('data-k'), 10));
+    });
+
+    attachChartObserver();
+    updatePillStyles();
+  }
+
+  // ---- Boot ----
+  function showMessage(msg) {
+    document.querySelector('.shell').innerHTML = '<div class="brand" style="margin-bottom:8px"><span class="title">Ike Sales</span><span class="eyebrow">MRH Investment</span></div><div class="state-msg">' + escapeHtml(msg) + '</div>';
   }
 
   fetch('./data/sales.json', { cache: 'no-store' })
@@ -350,16 +472,17 @@
       return res.json();
     })
     .then(function (payload) {
-      var days = (payload.days || []).slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-      if (!days.length) {
-        document.getElementById('loading').textContent = 'No sales data yet — the first automatic refresh hasn’t run.';
+      var rawDays = payload.days || [];
+      if (!rawDays.length) {
+        showMessage('No sales data yet — the first automatic refresh hasn’t run.');
         return;
       }
-      buildApp();
-      render(days, days.length - 1);
+      days = buildViewDays(rawDays);
+      buildPills();
+      load(0, 'older');
     })
     .catch(function (err) {
-      document.getElementById('loading').textContent = 'Could not load sales data (' + err.message + '). Try refreshing in a minute.';
+      showMessage('Could not load sales data (' + err.message + '). Try refreshing in a minute.');
     });
 })();
 </script>
