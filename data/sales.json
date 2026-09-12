@@ -4,7 +4,7 @@
   "days": [
     {
       "date": "2026-09-12",
-      "generatedAt": "2026-09-12T18:18:12Z",
+      "generatedAt": "2026-09-12T18:41:06Z",
       "pos": {
         "total": 26380.0,
         "count": 14
@@ -16,7 +16,134 @@
       "pendingQuotations": {
         "total": 63346.0,
         "count": 3
-      }
+      },
+      "products": [
+        {
+          "name": "[2C-WHT-DS-2000-X01] #2C White Double Side 2000mm x1",
+          "qty": 5.0,
+          "total": 14000.0
+        },
+        {
+          "name": "[2C-WHT-NET-2000x900] 2C White Net 2000x900mm",
+          "qty": 5.0,
+          "total": 3500.0
+        },
+        {
+          "name": "[70186] Trolley Stand 5 Layer Black",
+          "qty": 1.0,
+          "total": 1900.0
+        },
+        {
+          "name": "[8388] Black Base Rectangular Container 38oz w/ PP Lid (TPLM C053)",
+          "qty": 150.0,
+          "total": 1200.0
+        },
+        {
+          "name": "[09876] Table Lamp Rechargeable",
+          "qty": 5.0,
+          "total": 1100.0
+        },
+        {
+          "name": "[70146] Hook Slat 12\"",
+          "qty": 50.0,
+          "total": 800.0
+        },
+        {
+          "name": "[01818] Rain Coat Polyester#5",
+          "qty": 1.0,
+          "total": 800.0
+        },
+        {
+          "name": "[01815] SLAT BOARD 4X8FT 15MM 11 ALU",
+          "qty": 1.0,
+          "total": 790.0
+        },
+        {
+          "name": "[2C-WHT-NETBRKT-900] 2C White Net Bracket Top 900mm",
+          "qty": 5.0,
+          "total": 750.0
+        },
+        {
+          "name": "[2C-WHT-NETBRKB-900] 2C White Net Bracket Bottom 900mm",
+          "qty": 5.0,
+          "total": 750.0
+        },
+        {
+          "name": "[01817] Rain Coat Polyester#4",
+          "qty": 1.0,
+          "total": 699.0
+        },
+        {
+          "name": "[01681] Table Mat Pvc 30x45cm #4",
+          "qty": 25.0,
+          "total": 475.0
+        },
+        {
+          "name": "[70037] Gas Regular (High Pressure)",
+          "qty": 1.0,
+          "total": 360.0
+        },
+        {
+          "name": "[01010] paper straw 8mm 50 pcs",
+          "qty": 10.0,
+          "total": 350.0
+        },
+        {
+          "name": "[8389] Aluminium Foil Box 8389 Loose",
+          "qty": 100.0,
+          "total": 300.0
+        },
+        {
+          "name": "[02070] Flower Pot 33x31cm E360x320",
+          "qty": 10.0,
+          "total": 200.0
+        },
+        {
+          "name": "[70215] Gas Pipe ( Yellow )",
+          "qty": 7.0,
+          "total": 105.0
+        },
+        {
+          "name": "[83421] Aluminium Foil Box 83241 Loose",
+          "qty": 10.0,
+          "total": 50.0
+        },
+        {
+          "name": "[70126] Dustbin Plastic 26cm #601",
+          "qty": 1.0,
+          "total": 39.0
+        },
+        {
+          "name": "Sponges Colorful 10pcs#31",
+          "qty": 1.0,
+          "total": 32.0
+        },
+        {
+          "name": "[01699] Strainer Steel 10cm Ym-055#17",
+          "qty": 1.0,
+          "total": 25.0
+        },
+        {
+          "name": "[02034] Plastic Strainer red",
+          "qty": 1.0,
+          "total": 19.0
+        },
+        {
+          "name": "[01864] Toilet Brush Plastic Code:208 #35",
+          "qty": 1.0,
+          "total": 19.0
+        },
+        {
+          "name": "[02036] PLASTIC STRAINER BLUE",
+          "qty": 1.0,
+          "total": 12.0
+        },
+        {
+          "name": "[77574] Paper Bag Brown Twisted Handle 32*12*35cm",
+          "qty": 1.0,
+          "total": 5.0
+        }
+      ]
     }
   ]
 }
