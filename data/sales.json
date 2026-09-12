@@ -1,0 +1,13 @@
+{
+  "company": "MRH Investment",
+  "currency": "MVR",
+  "days": [
+    {
+      "date": "2026-09-12",
+      "generatedAt": "2026-09-12T17:54:59Z",
+      "pos": { "total": 26330, "count": 13 },
+      "regularSales": { "total": 1900, "count": 1 },
+      "pendingQuotations": { "total": 63346, "count": 3 }
+    }
+  ]
+}
