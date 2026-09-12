@@ -90,9 +90,6 @@
 
   .state-msg { margin: auto; max-width: 420px; text-align: center; color: var(--ink2); font-size: 14.5px; padding: 24px; }
 
-  footer { flex: 0 0 auto; font-size: 11px; color: var(--ink3); line-height: 1.5; padding: 6px 2px 0; }
-  footer code { background: var(--muted); padding: 1px 5px; border-radius: 4px; font-size: 10.5px; }
-
   @keyframes rise-a { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes rise-b { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes slide-older-a { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
@@ -149,12 +146,6 @@
     <div class="main" id="main">
       <div class="content" id="content"></div>
     </div>
-
-    <footer>
-      Total sales = completed Point of Sale orders + confirmed Sales Orders, each counted once even when a sales order
-      is settled through the POS register. Unconfirmed quotations are not included. Figures are pulled from
-      <code>mrh-investment.odoo.com</code> and refresh automatically every 15 minutes.
-    </footer>
   </div>
 </div>
 
