@@ -1,6 +1,6 @@
-# Ike Today Sales
+# Ike Sales
 
-A small, free, self-hosted dashboard of today's total sales at MRH Investment —
+A small, free, self-hosted dashboard of daily sales at MRH Investment —
 Point of Sale plus confirmed Sales Orders, counted once each (see
 `scripts/fetch_sales.py` for the de-duplication logic). No dependency on any
 Claude subscription: GitHub Actions pulls the data, GitHub Pages serves the page.
@@ -17,7 +17,7 @@ Claude subscription: GitHub Actions pulls the data, GitHub Pages serves the page
 
 2. **Enable GitHub Pages**: Settings → Pages → Source: "Deploy from a branch" →
    Branch: `main`, folder `/ (root)`. The page will be at
-   `https://<your-username>.github.io/ike-today-sales/`.
+   `https://<your-username>.github.io/ike-sales/`.
 
 3. **Run the workflow once manually** to seed real data immediately instead of
    waiting for the next 15-minute tick: Actions tab → "Refresh sales data" →
@@ -35,8 +35,11 @@ the page reads directly.
   **excluding** any whose lines were settled through the POS register
   (`sale_order_origin_id` on `pos.order.line` is how Odoo links the two) —
   otherwise the same transaction gets counted twice.
-- **Pending Quotations**: draft/sent (unconfirmed) sale orders, shown
-  separately and never added to the total.
+- **Pending Quotations**: draft/sent (unconfirmed) sale orders, tracked in
+  `data/sales.json` but never added to the total. The page currently only
+  displays the combined total plus history/trend, not this per-channel
+  breakdown (kept simple for mobile) — the data is still there if that's
+  ever wanted back.
 
 ## Changing things later
 
