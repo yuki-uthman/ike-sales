@@ -1,4 +1,4 @@
-# Ike Daily Sales
+# Ike Today Sales
 
 A small, free, self-hosted dashboard of today's total sales at MRH Investment —
 Point of Sale plus confirmed Sales Orders, counted once each (see
@@ -17,7 +17,7 @@ Claude subscription: GitHub Actions pulls the data, GitHub Pages serves the page
 
 2. **Enable GitHub Pages**: Settings → Pages → Source: "Deploy from a branch" →
    Branch: `main`, folder `/ (root)`. The page will be at
-   `https://<your-username>.github.io/ike-day-sales/`.
+   `https://<your-username>.github.io/ike-today-sales/`.
 
 3. **Run the workflow once manually** to seed real data immediately instead of
    waiting for the next 30-minute tick: Actions tab → "Refresh sales data" →
