@@ -19,9 +19,7 @@
     --border:         rgba(13,31,28,0.10);
     --accent:         #0f6f68;
     --accent-strong:  #0b5750;
-    --series-pos:     #2a78d6;
-    --series-regular: #eb6834;
-    --series-pending: #9aa8a4;
+    --series-total:   #2a78d6;
     --gridline:       #e1e6e4;
     --shadow: 0 1px 2px rgba(13,31,28,0.06), 0 8px 24px -12px rgba(13,31,28,0.18);
   }
@@ -37,9 +35,7 @@
       --border:         rgba(255,255,255,0.10);
       --accent:         #29b3a6;
       --accent-strong:  #4bcabe;
-      --series-pos:     #3987e5;
-      --series-regular: #e0722f;
-      --series-pending: #5c6d68;
+      --series-total:   #3987e5;
       --gridline:       #223330;
       --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
     }
@@ -55,9 +51,7 @@
     --border:         rgba(255,255,255,0.10);
     --accent:         #29b3a6;
     --accent-strong:  #4bcabe;
-    --series-pos:     #3987e5;
-    --series-regular: #e0722f;
-    --series-pending: #5c6d68;
+    --series-total:   #3987e5;
     --gridline:       #223330;
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
   }
@@ -113,7 +107,7 @@
     padding: 28px 28px 24px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 6px;
   }
   .hero-label { font-size: 14px; color: var(--text-secondary); }
   .hero-figure {
@@ -128,26 +122,6 @@
     gap: 10px;
   }
   .hero-figure .unit { font-size: 20px; font-weight: 700; color: var(--text-secondary); }
-  .hero-sub { font-size: 14.5px; color: var(--text-secondary); }
-  .hero-sub b { color: var(--text-primary); font-weight: 600; }
-  .hero-sub .dot { color: var(--text-muted); margin: 0 6px; }
-
-  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-  .tile {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .tile-head { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
-  .swatch { width: 9px; height: 9px; border-radius: 2.5px; flex: none; }
-  .tile-value { font-family: "Manrope", sans-serif; font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums; }
-  .tile-count { font-size: 12.5px; color: var(--text-muted); }
-  .tile.muted { background: var(--surface-muted); border-style: dashed; }
-  .tile.muted .tile-value { color: var(--text-secondary); }
 
   .card {
     background: var(--surface);
@@ -160,13 +134,6 @@
   }
   .card-title { font-family: "Manrope", sans-serif; font-weight: 700; font-size: 15px; }
 
-  .cbar-row { display: flex; flex-direction: column; gap: 5px; }
-  .cbar-label { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--text-secondary); }
-  .cbar-label b { color: var(--text-primary); font-variant-numeric: tabular-nums; font-weight: 600; }
-  .cbar-track { height: 12px; border-radius: 4px; background: var(--surface-muted); overflow: hidden; }
-  .cbar-fill { height: 100%; border-radius: 4px 0 0 4px; min-width: 3px; }
-  .cbar-rows { display: flex; flex-direction: column; gap: 12px; }
-
   .trend-wrap { overflow-x: auto; }
   .trend { display: flex; align-items: flex-end; gap: 14px; height: 150px; min-width: 100%; padding-top: 20px; }
   .trend-col {
@@ -174,7 +141,7 @@
     gap: 6px; flex: 1 0 44px; height: 100%; cursor: pointer; position: relative;
   }
   .trend-val { font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--text-secondary); white-space: nowrap; }
-  .trend-bar { width: 26px; border-radius: 5px 5px 2px 2px; background: var(--series-pos); opacity: 0.55; transition: opacity 0.15s ease; }
+  .trend-bar { width: 26px; border-radius: 5px 5px 2px 2px; background: var(--series-total); opacity: 0.55; transition: opacity 0.15s ease; }
   .trend-col.current .trend-bar { background: var(--accent); opacity: 1; }
   .trend-col:hover .trend-bar { opacity: 0.85; }
   .trend-day { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
@@ -206,10 +173,6 @@
     .page { gap: 16px; }
     .hero { padding: 20px 18px 18px; border-radius: 14px; }
     .card { padding: 16px 16px 18px; border-radius: 14px; }
-    .tile { padding: 14px 15px; border-radius: 12px; }
-    .tiles { gap: 10px; }
-    .hero-sub { display: flex; flex-direction: column; gap: 3px; }
-    .hero-sub .dot { display: none; }
     thead th { padding-right: 4px; }
     tbody td { padding: 11px 4px 11px 0; }
     table { font-size: 12.5px; }
@@ -221,7 +184,6 @@
     .as-of { text-align: left; font-size: 13px; }
     .hero-figure { font-size: clamp(34px, 11vw, 44px); gap: 8px; }
     .hero-figure .unit { font-size: 16px; }
-    .tile-value { font-size: 19px; }
     .trend { gap: 8px; }
     .trend-col { flex-basis: 34px; }
     .trend-bar { width: 20px; }
@@ -246,10 +208,9 @@
   </div>
 
   <footer>
-    Total sales = completed Point of Sale orders + confirmed Sales Orders billed outside the POS (quotation → order → invoice).
-    A sales order settled through the POS register is counted once, under Point of Sale, never twice. Draft/unconfirmed
-    quotations are shown separately and not counted. Figures are pulled from <code>mrh-investment.odoo.com</code> and
-    refresh automatically every 15 minutes.
+    Total sales = completed Point of Sale orders + confirmed Sales Orders, each counted once even when a sales order
+    is settled through the POS register. Unconfirmed quotations are not included. Figures are pulled from
+    <code>mrh-investment.odoo.com</code> and refresh automatically every 15 minutes.
   </footer>
 </div>
 
@@ -267,46 +228,26 @@
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   }
 
-  function channelRow(label, value, max, color) {
-    var pct = Math.max((value / max) * 100, 1.5);
-    return '<div class="cbar-row">' +
-      '<div class="cbar-label"><span>' + label + '</span><b>MVR ' + fmt(value) + '</b></div>' +
-      '<div class="cbar-track"><div class="cbar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
-      '</div>';
-  }
+  function total(day) { return day.pos.total + day.regularSales.total; }
 
   function buildApp() {
     document.getElementById('app').innerHTML =
       '<div class="hero">' +
         '<div class="hero-label" id="heroLabel">Total sales</div>' +
         '<div class="hero-figure"><span class="unit">MVR</span><span id="heroValue">—</span></div>' +
-        '<div class="hero-sub" id="heroSub"></div>' +
       '</div>' +
-      '<div class="tiles">' +
-        '<div class="tile"><div class="tile-head"><span class="swatch" style="background:var(--series-pos)"></span>Point of Sale</div>' +
-          '<div class="tile-value" id="posValue">—</div><div class="tile-count" id="posCount"></div></div>' +
-        '<div class="tile"><div class="tile-head"><span class="swatch" style="background:var(--series-regular)"></span>Sales Orders</div>' +
-          '<div class="tile-value" id="regValue">—</div><div class="tile-count" id="regCount"></div></div>' +
-        '<div class="tile muted"><div class="tile-head"><span class="swatch" style="background:var(--series-pending)"></span>Pending Quotations</div>' +
-          '<div class="tile-value" id="pendValue">—</div><div class="tile-count" id="pendCount"></div></div>' +
-      '</div>' +
-      '<div class="card"><div class="card-title">Sales by channel</div><div class="cbar-rows" id="channelBars"></div></div>' +
       '<div class="card"><div class="card-title">Recent days</div><div class="trend-wrap"><div class="trend" id="trendChart"></div></div></div>' +
       '<div class="card"><div class="card-title">History</div><div style="overflow-x:auto"><table>' +
-        '<thead><tr><th>Date</th><th>POS</th><th>Sales orders</th><th>Total</th></tr></thead>' +
+        '<thead><tr><th>Date</th><th>Total</th></tr></thead>' +
         '<tbody id="historyBody"></tbody></table></div></div>';
   }
 
   function render(days, idx) {
     var day = days[idx];
-    var total = day.pos.total + day.regularSales.total;
     var isLatest = idx === days.length - 1;
 
     document.getElementById('heroLabel').textContent = 'Total sales — ' + dayLabel(day.date);
-    document.getElementById('heroValue').textContent = fmt(total);
-    document.getElementById('heroSub').innerHTML =
-      '<b>' + fmt(day.pos.total) + '</b> from ' + day.pos.count + ' POS order' + (day.pos.count === 1 ? '' : 's') +
-      '<span class="dot">&middot;</span><b>' + fmt(day.regularSales.total) + '</b> from ' + day.regularSales.count + ' sales order' + (day.regularSales.count === 1 ? '' : 's');
+    document.getElementById('heroValue').textContent = fmt(total(day));
 
     var asOf = document.getElementById('asOf');
     if (isLatest) {
@@ -319,18 +260,6 @@
       asOf.innerHTML = 'Viewing <strong>' + shortLabel(day.date) + '</strong>';
     }
 
-    document.getElementById('posValue').textContent = 'MVR ' + fmt(day.pos.total);
-    document.getElementById('posCount').textContent = day.pos.count + ' order' + (day.pos.count === 1 ? '' : 's');
-    document.getElementById('regValue').textContent = 'MVR ' + fmt(day.regularSales.total);
-    document.getElementById('regCount').textContent = day.regularSales.count + ' order' + (day.regularSales.count === 1 ? '' : 's');
-    document.getElementById('pendValue').textContent = 'MVR ' + fmt(day.pendingQuotations.total);
-    document.getElementById('pendCount').textContent = day.pendingQuotations.count + ' quotation' + (day.pendingQuotations.count === 1 ? '' : 's') + ' — not confirmed, excluded from total';
-
-    var maxChannel = Math.max(day.pos.total, day.regularSales.total, 1);
-    document.getElementById('channelBars').innerHTML =
-      channelRow('Point of Sale', day.pos.total, maxChannel, 'var(--series-pos)') +
-      channelRow('Sales Orders', day.regularSales.total, maxChannel, 'var(--series-regular)');
-
     renderHistoryTable(days, idx);
     renderTrend(days, idx);
   }
@@ -339,14 +268,11 @@
     var body = document.getElementById('historyBody');
     var rows = days.slice().reverse().slice(0, 14);
     body.innerHTML = rows.map(function (day) {
-      var total = day.pos.total + day.regularSales.total;
       var idx = days.indexOf(day);
       var cur = idx === selectedIndex ? ' current' : '';
       return '<tr class="row' + cur + '" data-idx="' + idx + '">' +
         '<td>' + dayLabel(day.date, { day: 'numeric', month: 'short', year: 'numeric' }) + '</td>' +
-        '<td>' + fmt(day.pos.total) + '</td>' +
-        '<td>' + fmt(day.regularSales.total) + '</td>' +
-        '<td>' + fmt(total) + '</td>' +
+        '<td>' + fmt(total(day)) + '</td>' +
         '</tr>';
     }).join('');
     Array.prototype.forEach.call(body.querySelectorAll('tr'), function (tr) {
@@ -356,15 +282,14 @@
 
   function renderTrend(days, selectedIndex) {
     var recent = days.slice(-14);
-    var max = Math.max.apply(null, recent.map(function (d) { return d.pos.total + d.regularSales.total; }).concat([1]));
+    var max = Math.max.apply(null, recent.map(total).concat([1]));
     var el = document.getElementById('trendChart');
     el.innerHTML = recent.map(function (day) {
-      var total = day.pos.total + day.regularSales.total;
-      var h = Math.max((total / max) * 100, 4);
+      var h = Math.max((total(day) / max) * 100, 4);
       var idx = days.indexOf(day);
       var cur = idx === selectedIndex ? ' current' : '';
       return '<div class="trend-col' + cur + '" data-idx="' + idx + '">' +
-        '<div class="trend-val">' + fmt(total) + '</div>' +
+        '<div class="trend-val">' + fmt(total(day)) + '</div>' +
         '<div class="trend-bar" style="height:' + h + '%"></div>' +
         '<div class="trend-day">' + shortLabel(day.date) + '</div>' +
         '</div>';
