@@ -39,9 +39,6 @@
 
   .shell { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 18px 16px 10px; width: 100%; max-width: 1160px; margin: 0 auto; }
   .topbar { display: flex; flex-direction: column; gap: 12px; }
-  .brand { display: flex; align-items: baseline; gap: 10px; }
-  .eyebrow { font-family: Manrope, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink3); }
-  .title { font-family: Manrope, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
   .pillswrap { position: relative; min-width: 0; }
   .pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
   .fade { position: absolute; top: 0; bottom: 0; left: 0; width: 96px; background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 38%, rgba(244,247,246,0) 100%); pointer-events: none; transition: opacity 0.25s; opacity: 0; }
@@ -104,8 +101,7 @@
 
   @media (min-width: 900px) {
     .shell { padding: 36px 40px 20px; gap: 20px; }
-    .topbar { flex-direction: row; align-items: center; justify-content: space-between; }
-    .title { font-size: 22px; }
+    .topbar { flex-direction: row; align-items: center; justify-content: flex-start; }
     .content { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 22px; }
     .hero { padding: 28px 28px 22px; }
     .dayname { font-size: 26px; }
@@ -126,10 +122,6 @@
 <div class="app" id="app" tabindex="0">
   <div class="shell">
     <div class="topbar">
-      <div class="brand">
-        <span class="title">Ike Sales</span>
-        <span class="eyebrow">MRH Investment</span>
-      </div>
       <div class="pillswrap">
         <div class="pills" id="pills"></div>
         <div class="fade" id="fade"></div>
@@ -454,7 +446,7 @@
 
   // ---- Boot ----
   function showMessage(msg) {
-    document.querySelector('.shell').innerHTML = '<div class="brand" style="margin-bottom:8px"><span class="title">Ike Sales</span><span class="eyebrow">MRH Investment</span></div><div class="state-msg">' + escapeHtml(msg) + '</div>';
+    document.querySelector('.shell').innerHTML = '<div class="state-msg">' + escapeHtml(msg) + '</div>';
   }
 
   fetch('./data/sales.json', { cache: 'no-store' })
