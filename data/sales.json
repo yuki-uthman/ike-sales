@@ -147,20 +147,46 @@
     },
     {
       "date": "2026-09-13",
-      "generatedAt": "2026-09-13T04:01:04Z",
+      "generatedAt": "2026-09-13T06:31:52Z",
       "pos": {
-        "total": 0,
-        "count": 0
+        "total": 29.0,
+        "count": 2
       },
       "regularSales": {
-        "total": 0,
-        "count": 0
+        "total": 720.0,
+        "count": 1
       },
       "pendingQuotations": {
-        "total": 0,
-        "count": 0
+        "total": 3000.0,
+        "count": 1
       },
-      "products": []
+      "products": [
+        {
+          "name": "[90048] Milkshake Powder Belgian Chocolate",
+          "qty": 1.0,
+          "total": 280.0
+        },
+        {
+          "name": "[06705] Milkshake Powder Vanilla",
+          "qty": 1.0,
+          "total": 220.0
+        },
+        {
+          "name": "[02154] Milkshake Powder Mango",
+          "qty": 1.0,
+          "total": 220.0
+        },
+        {
+          "name": "[02228] Paper Cup 6oz (Bundle)",
+          "qty": 1.0,
+          "total": 20.0
+        },
+        {
+          "name": "[70076] Towel 042-0980 30*30cm",
+          "qty": 1.0,
+          "total": 9.0
+        }
+      ]
     }
   ]
 }
