@@ -1100,10 +1100,10 @@
     },
     {
       "date": "2026-09-13",
-      "generatedAt": "2026-09-13T17:30:48Z",
+      "generatedAt": "2026-09-13T17:45:37Z",
       "pos": {
-        "total": 1540.0,
-        "count": 11
+        "total": 1848.0,
+        "count": 13
       },
       "regularSales": {
         "total": 17731.0,
@@ -1168,6 +1168,11 @@
           "name": "[90048] Milkshake Powder Belgian Chocolate",
           "qty": 1.0,
           "total": 280.0
+        },
+        {
+          "name": "[01608] Glass Jug 800ml#11",
+          "qty": 1.0,
+          "total": 270.0
         },
         {
           "name": "[3038] Mix-Lah Iced Tea Premix Lemon Tea",
@@ -1245,6 +1250,11 @@
           "total": 20.0
         },
         {
+          "name": "[6291101710057] Aluminum Container With lid 680cc 10pcs",
+          "qty": 1.0,
+          "total": 20.0
+        },
+        {
           "name": "[RD8-WHT-CLIP-300] RD8 White Clip 300mm",
           "qty": 16.0,
           "total": 16.0
@@ -1260,8 +1270,18 @@
           "total": 15.0
         },
         {
+          "name": "[X0001] Damaged Aluminum Foil Container",
+          "qty": 1.0,
+          "total": 10.0
+        },
+        {
           "name": "[42688] Spoon small flatware Ss#3 Red",
           "qty": 1.0,
+          "total": 8.0
+        },
+        {
+          "name": "[8368] Aluminium Foil Box 8368 Loose",
+          "qty": 4.0,
           "total": 8.0
         }
       ]
