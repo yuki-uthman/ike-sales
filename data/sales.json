@@ -1100,10 +1100,10 @@
     },
     {
       "date": "2026-09-13",
-      "generatedAt": "2026-09-13T15:15:33Z",
+      "generatedAt": "2026-09-13T15:30:49Z",
       "pos": {
-        "total": 1445.0,
-        "count": 10
+        "total": 1540.0,
+        "count": 11
       },
       "regularSales": {
         "total": 16931.0,
@@ -1208,6 +1208,16 @@
           "name": "[01697] Handheld Peeler 1129#15",
           "qty": 1.0,
           "total": 59.0
+        },
+        {
+          "name": "Paper Plate 9'' 100pcs Bundle",
+          "qty": 1.0,
+          "total": 50.0
+        },
+        {
+          "name": "[02230] Wooden Spoon 100pcs",
+          "qty": 1.0,
+          "total": 45.0
         },
         {
           "name": "[03338] Paper Cup 4oz (Bundle)",
