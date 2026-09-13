@@ -147,18 +147,18 @@
     },
     {
       "date": "2026-09-13",
-      "generatedAt": "2026-09-13T06:33:02Z",
+      "generatedAt": "2026-09-13T09:24:51Z",
       "pos": {
-        "total": 29.0,
-        "count": 2
+        "total": 310.0,
+        "count": 5
       },
       "regularSales": {
         "total": 720.0,
         "count": 1
       },
       "pendingQuotations": {
-        "total": 3000.0,
-        "count": 1
+        "total": 6290.0,
+        "count": 2
       },
       "products": [
         {
@@ -177,14 +177,24 @@
           "total": 220.0
         },
         {
-          "name": "[02228] Paper Cup 6oz (Bundle)",
+          "name": "[6971746750075] Rain Coat Polyester #2",
           "qty": 1.0,
-          "total": 20.0
+          "total": 185.0
+        },
+        {
+          "name": "[02232] Ice Cream Spoon 100pcs",
+          "qty": 2.0,
+          "total": 78.0
         },
         {
           "name": "[70076] Towel 042-0980 30*30cm",
+          "qty": 3.0,
+          "total": 27.0
+        },
+        {
+          "name": "[02228] Paper Cup 6oz (Bundle)",
           "qty": 1.0,
-          "total": 9.0
+          "total": 20.0
         }
       ]
     }
