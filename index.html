@@ -64,8 +64,6 @@
   .grid { position: absolute; left: 0; right: 0; top: 20px; bottom: 19px; pointer-events: none; }
   .grid i { position: absolute; left: 0; right: 0; height: 1px; background: var(--grid); font-style: normal; }
   .bar { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
-  .barval { height: 14px; line-height: 14px; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--ink2); white-space: nowrap; transition: opacity 0.15s; }
-  .bar:hover .barval { opacity: 1 !important; }
   .barcol { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
   .barfill { width: 70%; max-width: 30px; min-height: 3px; border-radius: 5px 5px 2px 2px; transition: background 0.2s ease, opacity 0.2s ease; }
   .barlbl { height: 28px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--ink3); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -287,7 +285,6 @@
       var sel = d.k === state.idx;
       return {
         k: d.k, label: String(d.dn),
-        value: d.total >= 10000 ? (d.total / 1000).toFixed(1) + 'k' : fmt(d.total),
         h: Math.max(0, d.total / peak * 100),
         sel: sel
       };
@@ -297,7 +294,6 @@
 
   function barHtml(b) {
     return '<div class="bar" data-k="' + b.k + '">' +
-      '<div class="barval" style="opacity:' + (b.sel ? 1 : 0) + '">' + b.value + '</div>' +
       '<div class="barcol"><div class="barfill" style="height:' + b.h + '%;background:' + (b.sel ? 'var(--accent)' : 'var(--ink3)') + ';opacity:' + (b.sel ? 1 : 0.32) + '"></div></div>' +
       '<div class="barlbl">' + (b.sel ? '<span class="disc">' + b.label + '</span>' : b.label) + '</div>' +
       '</div>';
@@ -325,7 +321,6 @@
         if (!barEl) return;
         barEl.querySelector('.barfill').style.background = b.sel ? 'var(--accent)' : 'var(--ink3)';
         barEl.querySelector('.barfill').style.opacity = b.sel ? 1 : 0.32;
-        barEl.querySelector('.barval').style.opacity = b.sel ? 1 : 0;
         barEl.querySelector('.barlbl').innerHTML = b.sel ? '<span class="disc">' + b.label + '</span>' : b.label;
       });
     }
