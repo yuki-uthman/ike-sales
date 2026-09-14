@@ -1288,14 +1288,14 @@
     },
     {
       "date": "2026-09-14",
-      "generatedAt": "2026-09-14T05:01:03Z",
+      "generatedAt": "2026-09-14T05:15:35Z",
       "pos": {
         "total": 0,
         "count": 0
       },
       "regularSales": {
-        "total": 5830.0,
-        "count": 1
+        "total": 6010.0,
+        "count": 2
       },
       "pendingQuotations": {
         "total": 0,
@@ -1311,6 +1311,11 @@
           "name": "[PP9] PAPER PLATE 9\"",
           "qty": 12.0,
           "total": 580.0
+        },
+        {
+          "name": "[02423] KRAFT PAPER BAG 50PCS Medium",
+          "qty": 3.0,
+          "total": 180.0
         }
       ]
     }
