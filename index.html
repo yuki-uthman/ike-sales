@@ -20,7 +20,7 @@
 
   .app {
     --bg: #f4f7f6; --surface: #ffffff; --muted: #edf2f0; --ink: #0d1f1c; --ink2: #4c5f5b; --ink3: #7c8c88;
-    --border: rgba(13,31,28,0.08); --grid: #e1e6e4; --skel: #e6ebe9; --skel2: #f1f4f3;
+    --border: rgba(13,31,28,0.08); --grid: #e1e6e4;
     --accent: #0f6f68;
     --shadow: 0 1px 2px rgba(13,31,28,0.05), 0 12px 32px -16px rgba(13,31,28,0.22);
     height: 100vh; height: 100dvh;
@@ -31,7 +31,7 @@
   @media (prefers-color-scheme: dark) {
     .app {
       --bg: #0b1614; --surface: #11201d; --muted: #162622; --ink: #f2f6f5; --ink2: #b7c6c2; --ink3: #82938e;
-      --border: rgba(255,255,255,0.08); --grid: #223330; --skel: #1a2b27; --skel2: #20332e;
+      --border: rgba(255,255,255,0.08); --grid: #223330;
       --accent: #29b3a6;
       --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 14px 32px -16px rgba(0,0,0,0.6);
     }
@@ -67,7 +67,7 @@
   .barval { height: 14px; line-height: 14px; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--ink2); white-space: nowrap; transition: opacity 0.15s; }
   .bar:hover .barval { opacity: 1 !important; }
   .barcol { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
-  .barfill { width: 70%; max-width: 30px; min-height: 3px; border-radius: 5px 5px 2px 2px; transform-origin: bottom; }
+  .barfill { width: 70%; max-width: 30px; min-height: 3px; border-radius: 5px 5px 2px 2px; transition: background 0.2s ease, opacity 0.2s ease; }
   .barlbl { height: 28px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--ink3); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .barlbl .disc { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 4px; border-radius: 999px; background: var(--accent); color: #ffffff; font-weight: 700; font-size: 12.5px; }
   .list { display: flex; flex-direction: column; min-height: 0; }
@@ -82,21 +82,11 @@
   .pn { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .pq { font-size: 12px; color: var(--ink3); }
   .pt { font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .sk { background: linear-gradient(90deg, var(--skel) 25%, var(--skel2) 50%, var(--skel) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 8px; }
 
   .state-msg { margin: auto; max-width: 420px; text-align: center; color: var(--ink2); font-size: 14.5px; padding: 24px; }
 
   @keyframes rise-a { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes rise-b { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  @keyframes slide-older-a { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
-  @keyframes slide-older-b { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
-  @keyframes slide-newer-a { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
-  @keyframes slide-newer-b { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
-  @keyframes grow-a { from { transform: scaleY(0); } to { transform: none; } }
-  @keyframes grow-b { from { transform: scaleY(0); } to { transform: none; } }
-  @keyframes fade-a { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes fade-b { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
   @media (min-width: 900px) {
     .shell { padding: 36px 40px 20px; gap: 20px; }
@@ -202,35 +192,26 @@
   var contentEl = document.getElementById('content');
 
   var days = [];
-  var state = { idx: 0, loading: true, shown: 0, dir: 'older', tick: 0, cw: 322 };
-  var touch = null, timer = null, raf = null, ro = null;
+  var state = { idx: 0, shown: 0, tick: 0, cw: 322 };
+  var touch = null, raf = null, ro = null;
+  var chartWindowKey = null; // comma-joined day keys currently shown in the chart, oldest-left
 
-  function go(i, dir) {
+  function go(i) {
     if (i < 0 || i >= days.length || i === state.idx) return;
-    load(i, dir || (i > state.idx ? 'older' : 'newer'));
+    state.idx = i;
+    renderDay();
   }
 
-  function load(i, dir) {
-    clearTimeout(timer);
+  function parity() { return (++state.tick) % 2 ? 'b' : 'a'; }
+
+  function countUp(from, to) {
     if (raf) cancelAnimationFrame(raf);
-    state.loading = true; state.idx = i; state.dir = dir; state.shown = 0;
-    renderAll();
-    timer = setTimeout(function () {
-      state.loading = false; state.tick = state.tick + 1;
-      renderAll();
-      var day = days[state.idx];
-      if (day && day.total > 0) countUp(day.total); else setTotalText(0);
-    }, 420);
-  }
-
-  function countUp(total) {
-    var start = null, dur = 700;
+    var start = null, dur = 500;
     function step(t) {
       if (start === null) start = t;
       var p = Math.min(1, (t - start) / dur);
       var e = 1 - Math.pow(1 - p, 3);
-      state.shown = total * e;
-      setTotalText(state.shown);
+      setTotalText(from + (to - from) * e);
       if (p < 1) raf = requestAnimationFrame(step);
     }
     raf = requestAnimationFrame(step);
@@ -302,29 +283,52 @@
     var win = days.slice(first, first + maxBars);
     var rawPeak = Math.max(1, Math.max.apply(null, win.map(function (d) { return d.total; })));
     var peak = niceCeil(rawPeak);
-    var bars = win.slice().reverse().map(function (d, i) {
+    var bars = win.slice().reverse().map(function (d) {
       var sel = d.k === state.idx;
       return {
         k: d.k, label: String(d.dn),
         value: d.total >= 10000 ? (d.total / 1000).toFixed(1) + 'k' : fmt(d.total),
         h: Math.max(0, d.total / peak * 100),
-        sel: sel, delay: (i * 40) + 'ms'
+        sel: sel
       };
     });
     return { peak: peak, bars: bars };
   }
 
-  function chartHtml() {
+  function barHtml(b) {
+    return '<div class="bar" data-k="' + b.k + '">' +
+      '<div class="barval" style="opacity:' + (b.sel ? 1 : 0) + '">' + b.value + '</div>' +
+      '<div class="barcol"><div class="barfill" style="height:' + b.h + '%;background:' + (b.sel ? 'var(--accent)' : 'var(--ink3)') + ';opacity:' + (b.sel ? 1 : 0.32) + '"></div></div>' +
+      '<div class="barlbl">' + (b.sel ? '<span class="disc">' + b.label + '</span>' : b.label) + '</div>' +
+      '</div>';
+  }
+
+  // Only rebuilds the bar/axis markup when the WINDOW of days shown actually
+  // changes (e.g. resize, or navigating past the edge of the visible bars).
+  // Picking a different day within the same window just patches each bar's
+  // highlight state in place - no re-render, no re-animation.
+  function renderChart() {
     var c = computeBars();
-    var axisHtml = '<div class="axis"><span style="top:0">' + compact(c.peak) + '</span><span style="top:50%">' + compact(c.peak / 2) + '</span><span style="top:100%">0</span></div>';
-    var barsHtml = c.bars.map(function (b) {
-      return '<div class="bar" data-k="' + b.k + '">' +
-        '<div class="barval" style="opacity:' + (b.sel ? 1 : 0) + '">' + b.value + '</div>' +
-        '<div class="barcol"><div class="barfill" style="height:' + b.h + '%;background:' + (b.sel ? 'var(--accent)' : 'var(--ink3)') + ';opacity:' + (b.sel ? 1 : 0.32) + ';animation:grow-' + parity() + ' 600ms cubic-bezier(0.2,0.8,0.2,1) ' + b.delay + ' both"></div></div>' +
-        '<div class="barlbl">' + (b.sel ? '<span class="disc">' + b.label + '</span>' : b.label) + '</div>' +
-        '</div>';
-    }).join('');
-    return '<div class="chart">' + axisHtml + '<div class="plot" id="chartPlot"><div class="grid"><i style="top:0"></i><i style="top:50%"></i><i style="top:100%"></i></div>' + barsHtml + '</div></div>';
+    var key = c.bars.map(function (b) { return b.k; }).join(',');
+    var chartEl = document.getElementById('chartWrap');
+    var plot = document.getElementById('chartPlot');
+
+    if (!plot || key !== chartWindowKey) {
+      var axisHtml = '<div class="axis"><span style="top:0">' + compact(c.peak) + '</span><span style="top:50%">' + compact(c.peak / 2) + '</span><span style="top:100%">0</span></div>';
+      var barsHtml = c.bars.map(barHtml).join('');
+      chartEl.innerHTML = axisHtml + '<div class="plot" id="chartPlot"><div class="grid"><i style="top:0"></i><i style="top:50%"></i><i style="top:100%"></i></div>' + barsHtml + '</div>';
+      chartWindowKey = key;
+      attachChartObserver();
+    } else {
+      c.bars.forEach(function (b) {
+        var barEl = plot.querySelector('.bar[data-k="' + b.k + '"]');
+        if (!barEl) return;
+        barEl.querySelector('.barfill').style.background = b.sel ? 'var(--accent)' : 'var(--ink3)';
+        barEl.querySelector('.barfill').style.opacity = b.sel ? 1 : 0.32;
+        barEl.querySelector('.barval').style.opacity = b.sel ? 1 : 0;
+        barEl.querySelector('.barlbl').innerHTML = b.sel ? '<span class="disc">' + b.label + '</span>' : b.label;
+      });
+    }
   }
 
   function attachChartObserver() {
@@ -335,96 +339,71 @@
       var r = entries[0] && entries[0].contentRect;
       if (r && r.width > 0 && Math.abs(r.width - state.cw) > 1) {
         state.cw = r.width;
-        refreshChart();
+        chartWindowKey = null; // force a rebuild - the window size may have changed
+        renderChart();
       }
     });
     ro.observe(plot);
   }
-  function refreshChart() {
-    var wrap = document.getElementById('chartWrap');
-    if (!wrap) return;
-    wrap.innerHTML = chartHtml();
-    attachChartObserver();
-  }
 
-  function parity() { return state.tick % 2 ? 'b' : 'a'; }
-
-  // ---- Full content render (hero + list) on day change ----
-  function contentHtml() {
-    var day = days[state.idx];
-    var showLoading = state.loading;
-    var pr = parity();
-
-    var heroInner = '';
-    if (showLoading) {
-      heroInner =
-        '<div class="sk" style="width:62%;height:44px;margin-top:16px"></div>' +
-        '<div class="sk" style="width:38%;height:14px;margin-top:12px"></div>' +
-        '<div class="sk" style="height:140px;margin-top:18px;border-radius:12px"></div>';
-    } else {
-      var prev = days[state.idx + 1];
-      var deltaHtml = '';
-      if (prev && prev.total > 0 && day.total > 0) {
-        var pct = (day.total - prev.total) / prev.total * 100;
-        var up = pct >= 0;
-        var color = up ? 'var(--accent)' : 'var(--ink2)';
-        var rot = up ? 0 : 180;
-        var text = (up ? '+' : '−') + Math.abs(pct).toFixed(1) + '% vs ' + (state.idx === 0 ? 'yesterday' : prev.wd.slice(0, 3));
-        deltaHtml = '<div class="delta" style="color:' + color + ';animation: rise-' + pr + ' 500ms cubic-bezier(0.2,0.8,0.2,1) 80ms both">' +
-          '<svg width="14" height="14" fill="none" stroke="currentColor" style="stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transform:rotate(' + rot + 'deg)"><path d="M7 12V2M2.5 6.5L7 2l4.5 4.5"></path></svg>' +
-          '<span>' + text + '</span></div>';
-      }
-      heroInner =
-        '<div class="total" style="animation: rise-' + pr + ' 500ms cubic-bezier(0.2,0.8,0.2,1) both"><span class="cur">MVR</span><span id="heroValue">0</span></div>' +
-        deltaHtml +
-        '<div id="chartWrap">' + chartHtml() + '</div>';
-    }
-
-    var rowsInner = '';
-    if (showLoading) {
-      rowsInner = '<div style="display:flex;flex-direction:column;gap:14px;padding:8px 10px">' +
-        '<div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div>' +
-        '<div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div><div class="sk" style="height:34px"></div></div>';
-    } else {
-      rowsInner = day.products.map(function (p, i) {
-        var badgeBg = i === 0 ? 'var(--accent)' : 'var(--muted)';
-        var badgeFg = i === 0 ? '#ffffff' : 'var(--ink2)';
-        var delay = Math.min(i, 12) * 35 + 'ms';
-        return '<div class="row" style="animation: rise-' + pr + ' 420ms cubic-bezier(0.2,0.8,0.2,1) both;animation-delay:' + delay + '">' +
-          '<span class="rank" style="background:' + badgeBg + ';color:' + badgeFg + '">' + (i + 1) + '</span>' +
-          '<span class="pname"><span class="pn">' + escapeHtml(p.name) + '</span><span class="pq">' + fmt(p.qty) + (p.qty === 1 ? ' unit' : ' units') + '</span></span>' +
-          '<span class="pt">' + fmt(p.total) + '</span>' +
-          '</div>';
-      }).join('');
-    }
-    var countText = showLoading ? '' : (day.count + (day.count === 1 ? ' product' : ' products'));
-    var listHtml = '<div class="card list">' +
-      '<div class="listhead"><span class="listtitle">Products sold</span><span class="count">' + countText + '</span></div>' +
-      '<div class="rows">' + rowsInner + '</div>' +
+  // ---- Persistent app shell, built once; day changes patch it in place ----
+  function buildApp() {
+    contentEl.innerHTML =
+      '<div class="card hero">' +
+        '<div class="total"><span class="cur">MVR</span><span id="heroValue">0</span></div>' +
+        '<div class="delta" id="deltaBlock" style="display:none">' +
+          '<svg width="14" height="14" fill="none" stroke="currentColor" style="stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M7 12V2M2.5 6.5L7 2l4.5 4.5"></path></svg>' +
+          '<span></span>' +
+        '</div>' +
+        '<div class="chart" id="chartWrap"></div>' +
+      '</div>' +
+      '<div class="card list">' +
+        '<div class="listhead"><span class="listtitle">Products sold</span><span class="count" id="productCount"></span></div>' +
+        '<div class="rows" id="productRows"></div>' +
       '</div>';
-
-    var slideAnim = 'slide-' + state.dir + '-' + pr;
-    return '<div class="content" id="content" style="animation: ' + slideAnim + ' 380ms cubic-bezier(0.2,0.8,0.2,1) both">' +
-      '<div class="card hero">' + heroInner + '</div>' +
-      listHtml +
-      '</div>';
-  }
-
-  function renderAll() {
-    var day = days[state.idx];
-    if (day) {
-      daynameEl.textContent = day.wd;
-      daydateEl.textContent = day.dateFull;
-    }
-    contentEl.outerHTML = contentHtml();
-    contentEl = document.getElementById('content'); // outerHTML detaches the old node; re-acquire the new one
 
     contentEl.addEventListener('click', function (e) {
       var bar = e.target.closest('.bar');
       if (bar) go(parseInt(bar.getAttribute('data-k'), 10));
     });
+  }
 
-    attachChartObserver();
+  function renderDay() {
+    var day = days[state.idx];
+    daynameEl.textContent = day.wd;
+    daydateEl.textContent = day.dateFull;
+
+    countUp(state.shown, day.total);
+    state.shown = day.total;
+
+    var prev = days[state.idx + 1];
+    var deltaEl = document.getElementById('deltaBlock');
+    if (prev && prev.total > 0 && day.total > 0) {
+      var pct = (day.total - prev.total) / prev.total * 100;
+      var up = pct >= 0;
+      deltaEl.style.display = '';
+      deltaEl.style.color = up ? 'var(--accent)' : 'var(--ink2)';
+      deltaEl.querySelector('svg').style.transform = 'rotate(' + (up ? 0 : 180) + 'deg)';
+      deltaEl.querySelector('span').textContent = (up ? '+' : '−') + Math.abs(pct).toFixed(1) + '% vs ' + (state.idx === 0 ? 'yesterday' : prev.wd.slice(0, 3));
+    } else {
+      deltaEl.style.display = 'none';
+    }
+
+    renderChart();
+
+    var pr = parity();
+    document.getElementById('productCount').textContent = day.count + (day.count === 1 ? ' product' : ' products');
+    document.getElementById('productRows').innerHTML = day.products.map(function (p, i) {
+      var badgeBg = i === 0 ? 'var(--accent)' : 'var(--muted)';
+      var badgeFg = i === 0 ? '#ffffff' : 'var(--ink2)';
+      var delay = Math.min(i, 12) * 35 + 'ms';
+      return '<div class="row" style="animation: rise-' + pr + ' 320ms cubic-bezier(0.2,0.8,0.2,1) both;animation-delay:' + delay + '">' +
+        '<span class="rank" style="background:' + badgeBg + ';color:' + badgeFg + '">' + (i + 1) + '</span>' +
+        '<span class="pname"><span class="pn">' + escapeHtml(p.name) + '</span><span class="pq">' + fmt(p.qty) + (p.qty === 1 ? ' unit' : ' units') + '</span></span>' +
+        '<span class="pt">' + fmt(p.total) + '</span>' +
+        '</div>';
+    }).join('');
+
     updatePillStyles();
   }
 
@@ -446,7 +425,9 @@
       }
       days = buildViewDays(rawDays);
       buildPills();
-      load(0, 'older');
+      buildApp();
+      state.idx = 0;
+      renderDay();
     })
     .catch(function (err) {
       showMessage('Could not load sales data (' + err.message + '). Try refreshing in a minute.');
