@@ -153,7 +153,7 @@
     });
   }
 
-  // ---- Build view-model days from data/sales.json (k=0 today ... k=N-1 oldest) ----
+  // ---- Build view-model days from the ike-data sales feed (k=0 today ... k=N-1 oldest) ----
   function buildViewDays(rawDays) {
     var asc = rawDays.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
     var arr = asc.slice().reverse(); // today first
@@ -407,7 +407,9 @@
     document.querySelector('.shell').innerHTML = '<div class="state-msg">' + escapeHtml(msg) + '</div>';
   }
 
-  fetch('./data/sales.json', { cache: 'no-store' })
+  var DATA_URL = 'https://raw.githubusercontent.com/yuki-uthman/ike-data/main/data/sales.json';
+
+  fetch(DATA_URL, { cache: 'no-store' })
     .then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
