@@ -60,10 +60,19 @@
   .chart { display: flex; align-items: stretch; gap: 10px; height: 150px; margin-top: 18px; }
   .axis { position: relative; flex: 0 0 30px; margin-top: 20px; margin-bottom: 19px; }
   .axis span { position: absolute; right: 0; transform: translateY(-50%); font-size: 10.5px; color: var(--ink3); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .plot { position: relative; flex: 1; min-width: 0; display: flex; align-items: stretch; gap: 6px; }
+  /* The gridlines sit in this wrapper rather than in the scroller, so they
+     stay put while the bars scroll under them - a gridline that scrolled away
+     from its own axis label would be worse than no gridline. */
+  .plotwrap { position: relative; flex: 1; min-width: 0; }
+  /* The page swipes left/right to change day and declares touch-action: pan-y
+     to allow it, which would leave this scroller unscrollable by touch. pan-x
+     here hands horizontal gestures that start on the chart back to the
+     scroller; the swipe handler ignores them for the same reason. */
+  .plot { position: relative; height: 100%; display: flex; align-items: stretch; gap: 6px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; scroll-behavior: smooth; overscroll-behavior-x: contain; touch-action: pan-x; }
+  .plot::-webkit-scrollbar { display: none; }
   .grid { position: absolute; left: 0; right: 0; top: 20px; bottom: 19px; pointer-events: none; }
   .grid i { position: absolute; left: 0; right: 0; height: 1px; background: var(--grid); font-style: normal; }
-  .bar { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+  .bar { position: relative; flex: 0 0 26px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
   .barcol { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
   .barfill { width: 70%; max-width: 30px; min-height: 3px; border-radius: 5px 5px 2px 2px; transition: background 0.2s ease, opacity 0.2s ease; }
   .barlbl { height: 28px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--ink3); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -83,6 +92,8 @@
 
   .state-msg { margin: auto; max-width: 420px; text-align: center; color: var(--ink2); font-size: 14.5px; padding: 24px; }
 
+  @media (prefers-reduced-motion: reduce) { .plot { scroll-behavior: auto; } }
+
   @keyframes rise-a { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes rise-b { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
@@ -98,6 +109,7 @@
     .delta { font-size: 14.5px; margin-top: 12px; }
     .chart { height: 240px; margin-top: auto; }
     .plot { gap: 10px; }
+    .bar { flex: 0 0 32px; }
     .listhead { padding: 22px 24px 10px; }
     .row { padding: 13px 14px; }
   }
@@ -192,9 +204,8 @@
   var contentEl = document.getElementById('content');
 
   var days = [];
-  var state = { idx: 0, shown: 0, tick: 0, cw: 322 };
-  var touch = null, raf = null, ro = null;
-  var chartWindowKey = null; // comma-joined day keys currently shown in the chart, oldest-left
+  var state = { idx: 0, shown: 0, tick: 0 };
+  var touch = null, raf = null;
 
   function go(i) {
     if (i < 0 || i >= days.length || i === state.idx) return;
@@ -230,9 +241,18 @@
     }
   }
 
-  mainEl.addEventListener('touchstart', function (e) { var t = e.touches && e.touches[0]; if (t) touch = { x: t.clientX, y: t.clientY }; }, { passive: true });
+  function inChart(e) { return !!(e.target && e.target.closest && e.target.closest('.plot')); }
+
+  mainEl.addEventListener('touchstart', function (e) {
+    if (inChart(e)) { touch = null; return; }   // that drag is scrolling the chart
+    var t = e.touches && e.touches[0];
+    if (t) touch = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
   mainEl.addEventListener('touchend', function (e) { var t = e.changedTouches && e.changedTouches[0]; if (t) swipeEnd(t.clientX, t.clientY); });
-  mainEl.addEventListener('mousedown', function (e) { touch = { x: e.clientX, y: e.clientY }; });
+  mainEl.addEventListener('mousedown', function (e) {
+    if (inChart(e)) { touch = null; return; }
+    touch = { x: e.clientX, y: e.clientY };
+  });
   mainEl.addEventListener('mouseup', function (e) { swipeEnd(e.clientX, e.clientY); });
   appEl.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowLeft') go(state.idx + 1);
@@ -277,18 +297,18 @@
   }
 
   // ---- Chart (axis + bars), isolated so a resize can refresh it without retriggering entrance animations ----
+  // Every retained day is a bar and the chart scrolls, so the scale is shared
+  // across all of them rather than fitted to a visible window - with a fixed
+  // axis beside a scrolling plot, a scale that changed as you scrolled would
+  // make two bars of equal height mean different amounts.
   function computeBars() {
-    var maxBars = Math.max(5, Math.floor(state.cw / 36));
-    var first = state.idx >= maxBars ? state.idx - maxBars + 1 : 0;
-    var win = days.slice(first, first + maxBars);
-    var rawPeak = Math.max(1, Math.max.apply(null, win.map(function (d) { return d.total; })));
+    var rawPeak = Math.max(1, Math.max.apply(null, days.map(function (d) { return d.total; })));
     var peak = niceCeil(rawPeak);
-    var bars = win.slice().reverse().map(function (d) {
-      var sel = d.k === state.idx;
+    var bars = days.slice().reverse().map(function (d) {   // oldest left, today right
       return {
         k: d.k, label: String(d.dn),
         h: Math.max(0, d.total / peak * 100),
-        sel: sel
+        sel: d.k === state.idx
       };
     });
     return { peak: peak, bars: bars };
@@ -301,22 +321,24 @@
       '</div>';
   }
 
-  // Only rebuilds the bar/axis markup when the WINDOW of days shown actually
-  // changes (e.g. resize, or navigating past the edge of the visible bars).
-  // Picking a different day within the same window just patches each bar's
-  // highlight state in place - no re-render, no re-animation.
+  // The bars never change once the data has loaded, so the markup is built
+  // once and a day change only patches the highlight - no re-render, no
+  // re-animation, and the scroll position survives.
   function renderChart() {
     var c = computeBars();
-    var key = c.bars.map(function (b) { return b.k; }).join(',');
     var chartEl = document.getElementById('chartWrap');
     var plot = document.getElementById('chartPlot');
 
-    if (!plot || key !== chartWindowKey) {
+    if (!plot) {
       var axisHtml = '<div class="axis"><span style="top:0">' + compact(c.peak) + '</span><span style="top:50%">' + compact(c.peak / 2) + '</span><span style="top:100%">0</span></div>';
       var barsHtml = c.bars.map(barHtml).join('');
-      chartEl.innerHTML = axisHtml + '<div class="plot" id="chartPlot"><div class="grid"><i style="top:0"></i><i style="top:50%"></i><i style="top:100%"></i></div>' + barsHtml + '</div>';
-      chartWindowKey = key;
-      attachChartObserver();
+      chartEl.innerHTML = axisHtml +
+        '<div class="plotwrap">' +
+          '<div class="grid"><i style="top:0"></i><i style="top:50%"></i><i style="top:100%"></i></div>' +
+          '<div class="plot" id="chartPlot">' + barsHtml + '</div>' +
+        '</div>';
+      plot = document.getElementById('chartPlot');
+      plot.scrollLeft = plot.scrollWidth; // open on today, at the right-hand end
     } else {
       c.bars.forEach(function (b) {
         var barEl = plot.querySelector('.bar[data-k="' + b.k + '"]');
@@ -326,21 +348,19 @@
         barEl.querySelector('.barlbl').innerHTML = b.sel ? '<span class="disc">' + b.label + '</span>' : b.label;
       });
     }
+    scrollBarIntoView();
   }
 
-  function attachChartObserver() {
-    if (ro) { try { ro.disconnect(); } catch (e) {} ro = null; }
+  // Keep the selected day reachable: picking a date from the pills, or swiping,
+  // can select a bar that is scrolled out of sight.
+  function scrollBarIntoView() {
     var plot = document.getElementById('chartPlot');
-    if (!plot || typeof ResizeObserver === 'undefined') return;
-    ro = new ResizeObserver(function (entries) {
-      var r = entries[0] && entries[0].contentRect;
-      if (r && r.width > 0 && Math.abs(r.width - state.cw) > 1) {
-        state.cw = r.width;
-        chartWindowKey = null; // force a rebuild - the window size may have changed
-        renderChart();
-      }
-    });
-    ro.observe(plot);
+    var bar = plot && plot.querySelector('.bar[data-k="' + state.idx + '"]');
+    if (!bar) return;
+    var target = bar.offsetLeft - plot.clientWidth / 2 + bar.offsetWidth / 2;
+    target = Math.max(0, Math.min(target, plot.scrollWidth - plot.clientWidth));
+    try { plot.scrollTo({ left: target, behavior: 'smooth' }); }
+    catch (e) { plot.scrollLeft = target; }
   }
 
   // ---- Persistent app shell, built once; day changes patch it in place ----
