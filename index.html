@@ -160,6 +160,8 @@
     return arr.map(function (rd, k) {
       var d = new Date(rd.date + 'T00:00:00Z');
       var wd = DAYN[d.getUTCDay()], dn = d.getUTCDate(), mo = MON[d.getUTCMonth()], yr = d.getUTCFullYear();
+      // pos = received through the POS, regularSales = received through an
+      // accounting payment. Their sum is the money that arrived that day.
       var total = (rd.pos ? rd.pos.total : 0) + (rd.regularSales ? rd.regularSales.total : 0);
 
       var aggMap = {};
@@ -353,7 +355,7 @@
         '<div class="chart" id="chartWrap"></div>' +
       '</div>' +
       '<div class="card list">' +
-        '<div class="listhead"><span class="listtitle">Products sold</span><span class="count" id="productCount"></span></div>' +
+        '<div class="listhead"><span class="listtitle">Products paid for</span><span class="count" id="productCount"></span></div>' +
         '<div class="rows" id="productRows"></div>' +
       '</div>';
 
