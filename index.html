@@ -281,8 +281,8 @@
   var days = [];
   var VIEW_KEY = 'ike-sales-view';
   function loadView() {
-    try { return localStorage.getItem(VIEW_KEY) === 'invoices' ? 'invoices' : 'products'; }
-    catch (e) { return 'products'; }   // private window, blocked storage
+    try { return localStorage.getItem(VIEW_KEY) === 'products' ? 'products' : 'invoices'; }
+    catch (e) { return 'invoices'; }   // private window, blocked storage
   }
   function saveView(v) { try { localStorage.setItem(VIEW_KEY, v); } catch (e) {} }
 
