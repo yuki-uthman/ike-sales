@@ -74,7 +74,7 @@
   .grid i { position: absolute; left: 0; right: 0; height: 1px; background: var(--grid); font-style: normal; }
   .bar { position: relative; flex: 0 0 26px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
   .barcol { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
-  .barfill { width: 70%; max-width: 30px; min-height: 3px; border-radius: 5px 5px 2px 2px; transition: background 0.2s ease, opacity 0.2s ease; }
+  .barfill { width: 70%; max-width: 30px; min-height: 3px; border-radius: 5px 5px 2px 2px; transition: height 280ms cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s ease, opacity 0.2s ease; }
   .barlbl { height: 28px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--ink3); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .barlbl .disc { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 4px; border-radius: 999px; background: var(--accent); color: #ffffff; font-weight: 700; font-size: 12.5px; }
   .list { display: flex; flex-direction: column; min-height: 0; }
@@ -92,7 +92,7 @@
 
   .state-msg { margin: auto; max-width: 420px; text-align: center; color: var(--ink2); font-size: 14.5px; padding: 24px; }
 
-  @media (prefers-reduced-motion: reduce) { .plot { scroll-behavior: auto; } }
+  @media (prefers-reduced-motion: reduce) { .plot { scroll-behavior: auto; } .barfill { transition: background 0.2s ease, opacity 0.2s ease; } }
 
   @keyframes rise-a { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes rise-b { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -297,16 +297,100 @@
   }
 
   // ---- Chart (axis + bars), isolated so a resize can refresh it without retriggering entrance animations ----
-  // Every retained day is a bar and the chart scrolls, so the scale is shared
-  // across all of them rather than fitted to a visible window - with a fixed
-  // axis beside a scrolling plot, a scale that changed as you scrolled would
-  // make two bars of equal height mean different amounts.
+  // ---- Scale: a pure function of the visible WINDOW, never of scroll pixels.
+  // That indirection is what charting libraries (ECharts dataZoom, Highstock,
+  // TradingView autoScale) all share: gestures move a window, the scale is
+  // derived from the window's data. Scroll position is only how the window is
+  // worked out here.
+  //
+  // Recomputed when the scroll SETTLES, not on every scroll event - a trackpad
+  // fires one every few pixels, and an axis relabelling several times per
+  // gesture reads as broken. Same reason chartjs-plugin-zoom rescales in
+  // onPanComplete rather than continuously.
+
+  var MIN_PEAK = 1000;      // 39 of the 60 retained days are empty; without a
+                            // floor, scrolling into them divides by zero and
+                            // labels the axis 0 / 0 / 0.
+  var scalePeak = null;     // the peak the axis currently shows
+  var scaleRaf = null, settleTimer = null;
+
+  function reduceMotion() {
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    catch (e) { return false; }
+  }
+
+  // Which bars the viewport covers. Partially visible bars COUNT: excluding a
+  // half-scrolled-in bar that happens to be the tallest would let it render
+  // past the top of its own axis.
+  function visiblePeak(plot) {
+    var bars = plot.querySelectorAll('.bar');
+    if (!bars.length) return niceCeil(MIN_PEAK);
+    var step = bars.length > 1 ? (bars[1].offsetLeft - bars[0].offsetLeft) : bars[0].offsetWidth;
+    if (!step) return niceCeil(MIN_PEAK);
+
+    var first = Math.max(0, Math.floor(plot.scrollLeft / step));
+    var last = Math.min(bars.length - 1, Math.ceil((plot.scrollLeft + plot.clientWidth) / step) - 1);
+    var max = 0;
+    for (var i = first; i <= Math.max(first, last); i++) {
+      var total = parseFloat(bars[i].getAttribute('data-total')) || 0;
+      if (total > max) max = total;
+    }
+    return niceCeil(Math.max(MIN_PEAK, max));
+  }
+
+  function setAxisText(v) {
+    var spans = document.querySelectorAll('#chartWrap .axis span');
+    if (spans.length < 2) return;
+    spans[0].textContent = compact(v);
+    spans[1].textContent = compact(v / 2);
+  }
+
+  // The labels have to travel with the bars; numbers hard-swapping under bars
+  // that are still moving reads as a glitch rather than a rescale.
+  function tweenAxis(from, to, instant) {
+    if (scaleRaf) cancelAnimationFrame(scaleRaf);
+    if (instant || from === null || reduceMotion()) { setAxisText(to); return; }
+    var start = null, dur = 280;
+    function step(ts) {
+      if (start === null) start = ts;
+      var p = Math.min(1, (ts - start) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      setAxisText(from + (to - from) * e);
+      if (p < 1) scaleRaf = requestAnimationFrame(step);
+    }
+    scaleRaf = requestAnimationFrame(step);
+  }
+
+  function applyScale(peak, instant) {
+    var plot = document.getElementById('chartPlot');
+    if (!plot) return;
+    Array.prototype.forEach.call(plot.querySelectorAll('.bar'), function (barEl) {
+      var total = parseFloat(barEl.getAttribute('data-total')) || 0;
+      barEl.querySelector('.barfill').style.height = Math.min(100, total / peak * 100) + '%';
+    });
+    tweenAxis(scalePeak, peak, instant);
+    scalePeak = peak;
+  }
+
+  function settleScale(instant) {
+    clearTimeout(settleTimer);
+    var plot = document.getElementById('chartPlot');
+    if (!plot) return;
+    var peak = visiblePeak(plot);
+    if (peak !== scalePeak) applyScale(peak, instant);
+  }
+
+  function scheduleSettle() {
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(function () { settleScale(false); }, 120);
+  }
+
   function computeBars() {
     var rawPeak = Math.max(1, Math.max.apply(null, days.map(function (d) { return d.total; })));
     var peak = niceCeil(rawPeak);
     var bars = days.slice().reverse().map(function (d) {   // oldest left, today right
       return {
-        k: d.k, label: String(d.dn),
+        k: d.k, label: String(d.dn), total: d.total,
         h: Math.max(0, d.total / peak * 100),
         sel: d.k === state.idx
       };
@@ -315,7 +399,7 @@
   }
 
   function barHtml(b) {
-    return '<div class="bar" data-k="' + b.k + '">' +
+    return '<div class="bar" data-k="' + b.k + '" data-total="' + b.total + '">' +
       '<div class="barcol"><div class="barfill" style="height:' + b.h + '%;background:' + (b.sel ? 'var(--accent)' : 'var(--ink3)') + ';opacity:' + (b.sel ? 1 : 0.32) + '"></div></div>' +
       '<div class="barlbl">' + (b.sel ? '<span class="disc">' + b.label + '</span>' : b.label) + '</div>' +
       '</div>';
@@ -339,6 +423,17 @@
         '</div>';
       plot = document.getElementById('chartPlot');
       plot.scrollLeft = plot.scrollWidth; // open on today, at the right-hand end
+
+      // scrollend where supported; the debounce is both the fallback and the
+      // safety net for scrolls that never fire it (a programmatic scrollTo).
+      plot.addEventListener('scroll', scheduleSettle, { passive: true });
+      if ('onscrollend' in window) {
+        plot.addEventListener('scrollend', function () { settleScale(false); });
+      }
+      window.addEventListener('resize', scheduleSettle);
+
+      // Fit to what today's viewport actually shows, before the first paint.
+      settleScale(true);
     } else {
       c.bars.forEach(function (b) {
         var barEl = plot.querySelector('.bar[data-k="' + b.k + '"]');
