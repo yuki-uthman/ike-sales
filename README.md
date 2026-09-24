@@ -19,9 +19,10 @@ credential, and the de-duplication logic all live in
 ## What a day's number means
 
 **Money received that day**, not sales made that day — the same question
-[ike-today](https://github.com/yuki-uthman/ike-today) asks, so the two
-dashboards can never disagree. A credit sale confirmed today does not appear
-here until the payment lands; an old invoice settled today appears here today.
+[ike-pos](https://github.com/yuki-uthman/ike-pos) (formerly ike-today) asks,
+so the two dashboards can never disagree. A credit sale confirmed today does
+not appear here until the payment lands; an old invoice settled today appears
+here today.
 
 The product list underneath is the products on whatever was paid for that
 day. One caveat: a partial payment contributes its invoice's whole line set,
@@ -30,7 +31,7 @@ invoices in full as a rule, so this is a stated edge rather than a routine
 distortion.
 
 A cheque, a card, or any other method that is neither cash nor transfer is
-still money received, so it counts in this dashboard's total. ike-today, which
+still money received, so it counts in this dashboard's total. ike-pos, which
 has only a cash card and a transfer card to put it in, holds it out of both
 and names it in a separate strip instead.
 
