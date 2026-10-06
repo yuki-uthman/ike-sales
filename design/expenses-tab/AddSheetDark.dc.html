@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add expense</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+body{margin:0;background:#0b1614;font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;color:#f2f6f5}
+button,input,select{font:inherit}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;box-sizing:border-box;background:#0b1614;overflow:hidden">
+  <div style="padding:18px 16px 0;display:flex;flex-direction:column;gap:14px"><div style="display:flex;align-items:baseline;gap:10px">
+      <span style="font-family:Manrope,sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.01em">Ike Expenses</span>
+      <span style="font-family:Manrope,sans-serif;font-weight:700;font-size:12px;letter-spacing:0.09em;text-transform:uppercase;color:#9aaba6">MRH Investment</span>
+    </div><div style="height:150px;border-radius:18px;background:#11201d;border:1px solid rgba(255,255,255,0.08)"></div></div>
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.62)"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;height:640px;box-sizing:border-box;background:#11201d;border-radius:24px 24px 0 0;box-shadow:0 -20px 50px -20px rgba(0,0,0,0.45);padding:10px 20px 24px;display:flex;flex-direction:column;gap:16px">
+    <div style="align-self:center;width:40px;height:5px;border-radius:3px;background:#2c3f3b"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start"><span style="font-family:Manrope,sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.01em">Add expense</span><span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:#162622;color:#b7c6c2;font-size:12.5px;font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M3 10l9-6 9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"></path></svg>Paid by bank transfer</span></div>
+      <button type="button" aria-label="Close" style="width:44px;height:44px;border:0;border-radius:14px;background:#162622;color:#b7c6c2;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.4;stroke-linecap:round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 0 14px;border-radius:16px;background:rgba(217,138,176,0.12)">
+      <label for="amt" style="font-family:Manrope,sans-serif;font-weight:700;font-size:12px;letter-spacing:0.09em;text-transform:uppercase;color:#f0b8d3">Amount</label>
+      <div style="display:flex;align-items:baseline;gap:8px;font-family:Manrope,sans-serif;font-weight:800;font-size:46px;line-height:1;letter-spacing:-0.025em;font-variant-numeric:tabular-nums"><span style="font-size:16px;font-weight:700;color:#b7c6c2;letter-spacing:0">MVR</span><input id="amt" type="text" inputmode="decimal" value="500.00" style="width:190px;border:0;background:none;padding:0;font:inherit;color:inherit;outline:none"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <label for="cat" style="font-weight:700;font-size:13px;color:#b7c6c2">Category</label>
+      <div style="position:relative">
+        <select id="cat" style="appearance:none;-webkit-appearance:none;width:100%;height:52px;box-sizing:border-box;border:1px solid rgba(255,255,255,0.20);border-radius:12px;background:#162622;padding:0 40px 0 14px;font-size:16px;font-weight:600;color:#f2f6f5"><option>Fuel / Petrol</option></select>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b7c6c2" aria-hidden="true" style="position:absolute;right:14px;top:17px;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none"><path d="M6 9l6 6 6-6"></path></svg>
+      </div></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-weight:700;font-size:13px;color:#b7c6c2">Receipt <span style="font-weight:400">(optional)</span></span>
+      <div style="display:flex;gap:10px">
+        <button type="button" style="flex:1;height:52px;border:1.5px dashed #d98ab0;border-radius:12px;background:#11201d;color:#f0b8d3;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Take photo</button>
+        <button type="button" style="flex:1;height:52px;border:1.5px dashed #d98ab0;border-radius:12px;background:#11201d;color:#f0b8d3;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><circle cx="9" cy="10" r="1.8"></circle><path d="M21 16l-5-5-8 9"></path></svg>Gallery</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <label for="pin" style="font-weight:700;font-size:13px;color:#b7c6c2;flex:0 0 auto">Your PIN</label>
+      <input id="pin" type="password" inputmode="numeric" value="1234" style="flex:1;height:52px;box-sizing:border-box;border:1px solid rgba(255,255,255,0.20);border-radius:12px;background:#162622;color:#f2f6f5;padding:0 14px;font-size:20px;letter-spacing:0.4em;text-align:center">
+    </div>
+    <div style="flex:1"></div>
+    <button type="button" style="height:56px;border:0;border-radius:16px;background:#d98ab0;color:#1d0b14;font-family:Manrope,sans-serif;font-weight:800;font-size:17px;box-shadow:0 14px 28px -12px rgba(217,138,176,0.45)">Post expense</button>
+    <span style="text-align:center;font-size:13px;color:#b7c6c2;margin-top:-6px">Posts straight to Odoo as a bank transfer.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
