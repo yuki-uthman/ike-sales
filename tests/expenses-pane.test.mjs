@@ -127,6 +127,19 @@ function readEntries(page, chips) {
   return page.evaluate(chipWords => {
     const pane = document.getElementById('pane-expenses');
     const norm = s => (s || '').replace(/\s+/g, ' ').trim();
+    // A reader sees separate fields, not one run-together string: textContent
+    // concatenates siblings with no separator ("just now" + "137" -> "now137"),
+    // which would destroy the boundary between a row's fields. Read each text
+    // node separately and join with a space, so field boundaries survive.
+    const fieldText = el => {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const parts = [];
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        const t = norm(n.nodeValue);
+        if (t) parts.push(t);
+      }
+      return norm(parts.join(' '));
+    };
     const chipsIn = el => chipWords.reduce(
       (n, w) => n + (norm(el.textContent).match(new RegExp(w.replace(/[/()&]/g, '\\$&'), 'g')) || []).length, 0);
 
@@ -142,7 +155,7 @@ function readEntries(page, chips) {
       }
       return {
         chip: norm(chip.textContent),
-        text: norm(row.textContent),
+        text: fieldText(row),
         hasRetryButton: Array.from(row.querySelectorAll('button')).some(b => norm(b.textContent) === 'Retry')
       };
     });
