@@ -228,9 +228,12 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
   });
 
   // ---- Plum accent (decision 5, measured from the approved screens) ----
-  assert.equal(
-    await expensesTab.evaluate(el => getComputedStyle(el).color), PLUM_LIGHT,
-    'the selected Expenses tab wears the light plum of design/expenses-tab/Main.dc.html');
+  // `.tab` transitions its colour, so the final accent is what is read: poll
+  // until the computed colour settles on the plum (and fail on timeout).
+  await waitFor(
+    'the selected Expenses tab to wear the light plum of design/expenses-tab/Main.dc.html'
+      + ` (${PLUM_LIGHT})`,
+    async () => await expensesTab.evaluate(el => getComputedStyle(el).color) === PLUM_LIGHT);
 
   // ---- The day's confirmed total, a separate pending line, the category list ----
   const paneText = (await pane.innerText()).replace(/\s+/g, ' ');
@@ -319,9 +322,21 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
   // ---- ids and classes scoped to the pane; Sales and Quotations behave as before ----
   const scoping = await page.evaluate(() => {
     const pane = document.getElementById('pane-expenses');
+    // The Add sheet is scoped too, but it lives outside #pager. Find it without
+    // assuming any implementation id: climb from the Post button to the nearest
+    // ancestor that also holds the sheet's Amount, Category and PIN fields.
+    const norm = s => (s || '').replace(/\s+/g, ' ').trim();
+    const holdsFields = el => {
+      const t = norm(el.textContent);
+      return /Amount/i.test(t) && /Category/i.test(t) && /PIN/i.test(t);
+    };
     const sheetRoots = Array.from(document.querySelectorAll('button'))
-      .filter(b => b.textContent.replace(/\s+/g, ' ').trim() === 'Post expense')
-      .map(b => b.closest('[id]'));
+      .filter(b => norm(b.textContent) === 'Post expense')
+      .map(b => {
+        let el = b.parentElement;
+        while (el && !holdsFields(el)) el = el.parentElement;
+        return el;
+      });
     const scopes = [pane].concat(sheetRoots).filter(Boolean);
     const ids = Array.from(document.querySelectorAll('[id]')).map(e => e.id);
     const inside = el => scopes.some(s => s.contains(el));
@@ -352,8 +367,10 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
   const darkTab = dark.page.locator('#tabs [role="tab"]').filter({ hasText: 'Expenses' });
   await darkTab.click();
   await waitFor('the Expenses tab in dark', async () => await darkTab.getAttribute('aria-selected') === 'true');
-  assert.equal(await darkTab.evaluate(el => getComputedStyle(el).color), PLUM_DARK,
-    'the dark scheme wears the dark plum of design/expenses-tab/MainDark.dc.html');
+  await waitFor(
+    'the dark scheme to wear the dark plum of design/expenses-tab/MainDark.dc.html'
+      + ` (${PLUM_DARK})`,
+    async () => await darkTab.evaluate(el => getComputedStyle(el).color) === PLUM_DARK);
   const darkEntries = await readEntries(dark.page, CHIPS);
   for (const chip of CHIPS) {
     assert.ok(darkEntries.some(e => e.chip === chip), `dark shows an entry chipped '${chip}'`);
