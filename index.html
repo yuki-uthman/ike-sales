@@ -27,7 +27,7 @@
   .app {
     --bg: #f4f7f6; --surface: #ffffff; --muted: #edf2f0; --ink: #0d1f1c; --ink2: #4c5f5b; --ink3: #7c8c88;
     --border: rgba(13,31,28,0.08); --grid: #e1e6e4;
-    --sales: #0f6f68; --quotes: #9a5b12; --expenses: #8a3f64;
+    --sales: #0f6f68; --quotes: #9a5b12;
     --shadow: 0 1px 2px rgba(13,31,28,0.05), 0 12px 32px -16px rgba(13,31,28,0.22);
     height: 100vh; height: 100dvh;
     background: var(--bg); color: var(--ink);
@@ -38,14 +38,14 @@
     .app {
       --bg: #0b1614; --surface: #11201d; --muted: #162622; --ink: #f2f6f5; --ink2: #b7c6c2; --ink3: #82938e;
       --border: rgba(255,255,255,0.08); --grid: #223330;
-      --sales: #29b3a6; --quotes: #e0a458; --expenses: #d98ab0;
+      --sales: #29b3a6; --quotes: #e0a458;
       --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 14px 32px -16px rgba(0,0,0,0.6);
     }
   }
 
-  /* ---- Pager: the full-width panes in a scroll-snap row. The browser does the
+  /* ---- Pager: two full-width panes in a scroll-snap row. The browser does the
      finger tracking, the rubber-banding and the snap; the tab bar only reads
-     scrollLeft. Every pane is laid out all the time (never display:none), so
+     scrollLeft. Both panes are laid out all the time (never display:none), so
      the offscreen chart can still measure itself. */
   .pager { flex: 1; min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; }
   .pager::-webkit-scrollbar { display: none; }
@@ -54,12 +54,8 @@
   .pane-sales { display: flex; flex-direction: column; overflow: hidden; outline: none; --accent: var(--sales); }
   /* Quotations is a long page of cards, so the pane itself scrolls. */
   .pane-quotes { overflow-y: auto; overscroll-behavior-y: contain; --accent: var(--quotes); --accent-soft: rgba(154,91,18,0.12); --order: #2f5f8c; --order-soft: rgba(47,95,140,0.12); --warn: #8c2f2f; --warn-soft: rgba(140,47,47,0.10); --rule: #e8edeb; }
-  /* Expenses is a fixed-height pane: the hero, the categories and the day's
-     entries scroll inside it, so the Add button can sit still over the corner. */
-  .pane-expenses { position: relative; display: flex; flex-direction: column; overflow: hidden; --accent: var(--expenses); --accent-soft: rgba(138,63,100,0.12); --wait: #7a4809; --wait-soft: rgba(154,91,18,0.12); --ok: #0b5750; --ok-soft: rgba(15,111,104,0.12); --bad: #8c2f2f; --bad-soft: rgba(140,47,47,0.10); --rule: #e8edeb; }
   @media (prefers-color-scheme: dark) {
     .pane-quotes { --accent-soft: rgba(224,164,88,0.14); --order: #7fb0de; --order-soft: rgba(127,176,222,0.14); --warn: #e08585; --warn-soft: rgba(224,133,133,0.12); --rule: #1e2d2a; }
-    .pane-expenses { --accent-soft: rgba(217,138,176,0.16); --wait: #e0a458; --wait-soft: rgba(224,164,88,0.14); --ok: #29b3a6; --ok-soft: rgba(41,179,166,0.14); --bad: #e08585; --bad-soft: rgba(224,133,133,0.12); --rule: #1e2d2a; }
   }
 
   /* ---- Bottom tab bar. The indicator is positioned from the pager's scroll
@@ -71,10 +67,8 @@
   .tab:active svg { transform: scale(0.88); }
   .tab[data-pane="0"][aria-selected="true"] { color: var(--sales); }
   .tab[data-pane="1"][aria-selected="true"] { color: var(--quotes); }
-  .tab[data-pane="2"][aria-selected="true"] { color: var(--expenses); }
   .tab:focus-visible { outline: 2px solid var(--ink2); outline-offset: -6px; border-radius: 14px; }
-  /* One tab wide, so translateX(p * 100%) is exactly p panes across. */
-  .tabind { position: absolute; top: 0; left: 0; width: 33.3333%; height: 3px; pointer-events: none; will-change: transform; }
+  .tabind { position: absolute; top: 0; left: 0; width: 50%; height: 3px; pointer-events: none; will-change: transform; }
   .tabind::before { content: ""; display: block; width: 32px; height: 3px; margin: 0 auto; border-radius: 0 0 3px 3px; background: var(--sales); }
   /* Blend teal into amber while the pager is between panes. Gated, because a
      var() that resolves to an unsupported color-mix() would blank the colour
@@ -370,101 +364,6 @@
     .pane-quotes .cardtotal { font-size: 34px; }
     .pane-quotes .row { padding: 11px 14px; }
   }
-
-  /* ================= Expenses pane ================= */
-  /* Same neutrals again; the accent is plum, measured as the dominant accent of
-     design/expenses-tab/. V1 shows dummy data and makes no call of its own. */
-  .pane-expenses .scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; }
-  .pane-expenses .shell { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 96px; width: 100%; max-width: 1160px; margin: 0 auto; }
-  .pane-expenses .brand { display: flex; align-items: baseline; gap: 10px; }
-  .pane-expenses .brandname { font-family: Manrope, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
-  .pane-expenses .org { font-family: Manrope, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink3); }
-  .pane-expenses .pills { display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 4px 0; }
-  .pane-expenses .pills::-webkit-scrollbar { display: none; }
-  .pane-expenses .pill { flex: 0 0 auto; height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--surface); color: var(--ink2); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 1px 2px rgba(13,31,28,0.06); transition: background 0.2s, color 0.2s; }
-  .pane-expenses .pill[aria-pressed="true"] { background: var(--accent); color: #ffffff; }
-  .pane-expenses .pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .pane-expenses .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); }
-  .pane-expenses .hero { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
-  .pane-expenses .herotop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-  .pane-expenses .kicker { font-family: Manrope, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink3); }
-  .pane-expenses .count { font-size: 13px; color: var(--ink2); font-variant-numeric: tabular-nums; }
-  .pane-expenses .total { display: flex; align-items: baseline; gap: 8px; font-family: Manrope, sans-serif; font-weight: 800; font-size: 42px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
-  .pane-expenses .cur { font-size: 15px; font-weight: 700; color: var(--ink2); letter-spacing: 0.02em; }
-  /* A second figure, not a subtitle: D11 counts approved/posted/in_payment/paid
-     as confirmed, so the money that is only waiting or drafted cannot hide
-     inside the figure above it. */
-  .pane-expenses .pending { display: flex; align-items: baseline; gap: 8px; padding: 9px 11px; border-radius: 12px; background: var(--wait-soft); color: var(--wait); font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
-  .pane-expenses .catlist { padding: 4px 16px; }
-  .pane-expenses .catrow { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; }
-  .pane-expenses .catrow + .catrow { border-top: 1px solid var(--rule); }
-  .pane-expenses .cattop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-  .pane-expenses .catname { font-weight: 700; font-size: 15px; min-width: 0; }
-  .pane-expenses .catamt { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
-  .pane-expenses .track { height: 6px; border-radius: 3px; background: var(--muted); }
-  .pane-expenses .track i { display: block; height: 6px; border-radius: 3px; background: var(--accent); }
-  .pane-expenses .catmeta { font-size: 13px; color: var(--ink2); }
-  .pane-expenses .entries { padding: 2px 16px; }
-  .pane-expenses .item { display: flex; flex-direction: column; gap: 10px; padding: 13px 0; }
-  .pane-expenses .item + .item { border-top: 1px solid var(--rule); }
-  .pane-expenses .itemtop { display: flex; align-items: center; gap: 12px; }
-  .pane-expenses .what { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-  .pane-expenses .cat { font-weight: 700; font-size: 16px; }
-  .pane-expenses .when { font-size: 13px; color: var(--ink2); }
-  .pane-expenses .amtwrap { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-  .pane-expenses .amt { font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
-  .pane-expenses .chip { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
-  .pane-expenses .chip-queued { background: var(--wait-soft); color: var(--wait); }
-  .pane-expenses .chip-draft { background: var(--accent-soft); color: var(--accent); }
-  .pane-expenses .chip-approved { background: var(--ok-soft); color: var(--ok); }
-  .pane-expenses .chip-failed, .pane-expenses .chip-refused { background: var(--bad-soft); color: var(--bad); }
-  .pane-expenses .retrybar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bad-soft); }
-  .pane-expenses .retrybar span { flex: 1; font-size: 13px; color: var(--bad); line-height: 1.35; }
-  .pane-expenses .retry { flex: 0 0 auto; height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--bad); color: #ffffff; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
-  .pane-expenses .legend { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); font-size: 12.5px; font-weight: 600; color: var(--ink2); }
-  .pane-expenses .legend .w { color: var(--wait); }
-  .pane-expenses .legend .d { color: var(--accent); }
-  .pane-expenses .legend .a { color: var(--ok); }
-  .pane-expenses .fab { position: absolute; right: 20px; bottom: 20px; width: 60px; height: 60px; border: 0; border-radius: 20px; background: var(--accent); color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 14px 28px -10px rgba(138,63,100,0.7); }
-  .pane-expenses .fab:focus-visible { outline: 2px solid var(--ink2); outline-offset: 3px; }
-  .pane-expenses .empty { padding: 26px 18px; text-align: center; color: var(--ink3); font-size: 14px; }
-
-  /* ---- Add-expense sheet. It lives outside the pager so a fixed overlay cannot
-     be clipped or dragged by the pager's horizontal scroll; every id and class
-     it introduces still carries the e- prefix. */
-  .e-overlay { position: fixed; inset: 0; z-index: 40; background: rgba(13,31,28,0.5); display: flex; align-items: flex-end; justify-content: center; --accent: var(--expenses); }
-  .e-sheet { width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; box-sizing: border-box; background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -20px 50px -20px rgba(0,0,0,0.45); padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16px; }
-  .e-grab { align-self: center; width: 40px; height: 5px; border-radius: 3px; background: var(--grid); }
-  .e-sheethead { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .e-titlewrap { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-  .e-title { font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; }
-  .e-via { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--muted); color: var(--ink2); font-size: 12.5px; font-weight: 700; }
-  .e-close { width: 44px; height: 44px; border: 0; border-radius: 14px; background: var(--muted); color: var(--ink2); display: flex; align-items: center; justify-content: center; cursor: pointer; }
-  .e-amtbox { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 0 14px; border-radius: 16px; background: var(--accent-soft, rgba(138,63,100,0.10)); }
-  .e-amtlbl { font-family: Manrope, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); }
-  .e-amtline { display: flex; align-items: baseline; gap: 8px; font-family: Manrope, sans-serif; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
-  .e-amtline .e-cur { font-size: 16px; font-weight: 700; color: var(--ink2); letter-spacing: 0; }
-  .e-amtline input { width: 190px; border: 0; background: none; padding: 0; font: inherit; color: inherit; outline: none; }
-  .e-field { display: flex; flex-direction: column; gap: 6px; }
-  .e-lbl { font-weight: 700; font-size: 13px; color: var(--ink2); }
-  .e-lbl .e-opt { font-weight: 400; }
-  .e-selwrap { position: relative; }
-  .e-selwrap select { appearance: none; -webkit-appearance: none; width: 100%; height: 52px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 0 40px 0 14px; font: inherit; font-size: 16px; font-weight: 600; }
-  .e-selwrap .e-chev { position: absolute; right: 14px; top: 17px; pointer-events: none; color: var(--ink2); }
-  .e-receipt { display: flex; gap: 10px; }
-  .e-pick { position: relative; flex: 1; height: 52px; border: 1.5px dashed var(--accent); border-radius: 12px; background: var(--surface); color: var(--accent); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-  .e-pick input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-  .e-pinrow { display: flex; align-items: center; gap: 12px; }
-  .e-pinrow .e-lbl { flex: 0 0 auto; }
-  .e-pinrow input { flex: 1; height: 52px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 0 14px; font: inherit; font-size: 20px; letter-spacing: 0.4em; text-align: center; }
-  .e-post { height: 56px; border: 0; border-radius: 16px; background: var(--accent); color: #ffffff; font-family: Manrope, sans-serif; font-weight: 800; font-size: 17px; cursor: pointer; box-shadow: 0 14px 28px -12px rgba(138,63,100,0.7); }
-  .e-note { text-align: center; font-size: 13px; color: var(--bad, #8c2f2f); min-height: 0; }
-  @media (min-width: 900px) {
-    .pane-expenses .shell { padding: 30px 40px 110px; gap: 18px; }
-    .pane-expenses .total { font-size: 56px; }
-    .e-sheet { border-radius: 24px; margin-bottom: 24px; }
-    .e-overlay { align-items: center; }
-  }
 </style>
 </head>
 <body>
@@ -526,39 +425,6 @@
         <div id="q-bin"></div>
       </div>
     </section>
-    <section class="pane pane-expenses" id="pane-expenses" role="tabpanel" aria-labelledby="tab-expenses">
-      <div class="scroll" id="e-scroll">
-        <div class="shell">
-          <div class="brand">
-            <span class="brandname">Ike Expenses</span>
-            <span class="org">MRH Investment</span>
-          </div>
-
-          <div class="pills" id="e-pills"></div>
-
-          <div class="card hero">
-            <div class="herotop">
-              <span class="kicker" id="e-heroLabel">&nbsp;</span>
-              <span class="count" id="e-heroCount"></span>
-            </div>
-            <div class="total"><span class="cur">MVR</span><span id="e-heroTotal">0</span></div>
-            <div class="pending" id="e-pending"></div>
-          </div>
-
-          <div class="card catlist" id="e-cats"></div>
-
-          <div class="kicker" id="e-entriesLabel" style="padding:0 2px">&nbsp;</div>
-          <div class="card entries" id="e-entries"></div>
-
-          <div class="legend">
-            <span class="w">Waiting</span><span aria-hidden="true">›</span><span class="d">Draft</span><span aria-hidden="true">›</span><span class="a">Approved</span>
-          </div>
-        </div>
-      </div>
-      <button class="fab" type="button" id="e-add" aria-label="Add expense">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.4;stroke-linecap:round"><path d="M12 5v14M5 12h14"></path></svg>
-      </button>
-    </section>
   </div>
 
   <nav class="tabbar" aria-label="Sections">
@@ -572,57 +438,8 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path></svg>
         <span>Quotations</span>
       </button>
-      <button class="tab" type="button" role="tab" id="tab-expenses" data-pane="2" aria-controls="pane-expenses" aria-selected="false" tabindex="-1">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="6" width="18" height="13" rx="2.5"></rect><path d="M3 10h18M16 15h2"></path></svg>
-        <span>Expenses</span>
-      </button>
     </div>
   </nav>
-
-  <!-- Add expense. Outside the pager, so a fixed overlay is neither clipped nor
-       dragged by the pager's horizontal scroll. Every id here is e- prefixed. -->
-  <div class="e-overlay" id="e-sheet" role="dialog" aria-modal="true" aria-labelledby="e-sheetTitle" hidden>
-    <div class="e-sheet">
-      <div class="e-grab" aria-hidden="true"></div>
-      <div class="e-sheethead">
-        <div class="e-titlewrap">
-          <span class="e-title" id="e-sheetTitle">Add expense</span>
-          <span class="e-via"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M3 10l9-6 9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"></path></svg>Paid by bank transfer</span>
-        </div>
-        <button class="e-close" type="button" id="e-cancel" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.4;stroke-linecap:round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
-      </div>
-
-      <div class="e-amtbox">
-        <label class="e-amtlbl" for="e-amount">Amount</label>
-        <div class="e-amtline"><span class="e-cur">MVR</span><input id="e-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
-      </div>
-
-      <div class="e-field">
-        <label class="e-lbl" for="e-category">Category</label>
-        <div class="e-selwrap">
-          <select id="e-category"></select>
-          <svg class="e-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9l6 6 6-6"></path></svg>
-        </div>
-      </div>
-
-      <div class="e-field">
-        <span class="e-lbl">Receipt <span class="e-opt">(optional)</span></span>
-        <div class="e-receipt">
-          <label class="e-pick"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Take photo<input id="e-camera" type="file" accept="image/*" capture="environment"></label>
-          <label class="e-pick"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><circle cx="9" cy="10" r="1.8"></circle><path d="M21 16l-5-5-8 9"></path></svg>Gallery<input id="e-gallery" type="file" accept="image/*"></label>
-        </div>
-        <span class="e-lbl e-opt" id="e-receiptName"></span>
-      </div>
-
-      <div class="e-pinrow">
-        <label class="e-lbl" for="e-pin">Your PIN</label>
-        <input id="e-pin" type="password" inputmode="numeric" autocomplete="off">
-      </div>
-
-      <button class="e-post" type="button" id="e-postBtn">Post expense</button>
-      <span class="e-note" id="e-note"></span>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -651,9 +468,6 @@ window.ikeDay = (function () {
   var tabs = Array.prototype.slice.call(document.querySelectorAll('#tabs .tab'));
   var ind = document.getElementById('tabind');
   var last = tabs.length - 1;
-  // One accent per pane, in pane order: the indicator interpolates between
-  // neighbours as the pager scrolls.
-  var ACCENTS = ['var(--sales)', 'var(--quotes)', 'var(--expenses)'];
   var cur = 0, ticking = false;
 
   function reduceMotion() {
@@ -674,12 +488,7 @@ window.ikeDay = (function () {
     var w = pager.clientWidth || 1;
     var p = Math.max(0, Math.min(last, pager.scrollLeft / w));
     ind.style.transform = 'translateX(' + (p * 100) + '%)';
-    // Blend only between the two accents the pager is actually between, so the
-    // indicator keeps following the finger once there are more than two panes.
-    var lo = Math.max(0, Math.min(last, Math.floor(p)));
-    var hi = Math.min(last, lo + 1);
-    var mix = Math.round((p - lo) * 100);
-    ind.style.setProperty('--ind', 'color-mix(in srgb, ' + ACCENTS[hi] + ' ' + mix + '%, ' + ACCENTS[lo] + ')');
+    ind.style.setProperty('--ind', 'color-mix(in srgb, var(--quotes) ' + Math.round(p / last * 100) + '%, var(--sales))');
     var i = Math.round(p);
     if (i !== cur) select(i);
   }
@@ -1914,258 +1723,6 @@ window.ikeDay = (function () {
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden) load(true);
   });
-})();
-</script>
-<script>
-// ---- Expenses pane (V1: dummy data, no network) ----
-// Everything this pane knows lives in the closure below. V1 deliberately makes
-// no call of its own: the Worker, the PIN check and the real queue are V2+, so
-// the only thing that can be judged here is the shape of the pane and the five
-// states an entry can be in (D12).
-(function () {
-  // D7: the 21 Odoo expense categories a shop user may choose from.
-  var CATS = [
-    'Advertising & Marketing', 'Communication', 'Electricity', 'Fuel / Petrol',
-    'Gate Pass (Boat Delivery)', 'Gifts', 'Internet', 'Meals',
-    'Medical Checkup (Visa)', 'Salary', 'Shop Maintenance & Repairs',
-    'Shop Rent', 'Software Subscriptions', 'Staff Accommodation Rent',
-    'Stationery & Packing Supplies', 'Travel & Accommodation',
-    'Vehicle Maintenance', 'Visa & Work Permit', 'Warehouse Rent',
-    'Waste Disposal', 'Water'
-  ];
-
-  // D12's five states, in the words D12 settled on. The design screens said
-  // "Posted"; a reader cannot tell from that whether the money is counted, so
-  // Odoo's own draft/approved/refused are shown instead.
-  var CHIP = {
-    queued: 'Waiting to send',
-    failed: 'Not sent',
-    draft: 'Draft',
-    approved: 'Approved',
-    refused: 'Refused'
-  };
-  // D11: approved/posted/in_payment/paid are confirmed; draft and submitted are
-  // not. Money that has not reached Odoo at all is not confirmed either.
-  var CONFIRMED = { approved: true };
-
-  var DAYN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-  }
-  function money(n) {
-    return n % 1 === 0
-      ? n.toLocaleString('en-US')
-      : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
-  function iso(d) {
-    return d.getFullYear() + '-' +
-      ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
-  }
-
-  // Three dummy days, each carrying one entry per state, so a single load shows
-  // every chip whichever day is selected.
-  function dummyDay(back) {
-    var d = new Date();
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - back);
-    return {
-      date: iso(d),
-      pill: back === 0 ? 'Today' : DAYN[d.getDay()].slice(0, 3) + ' ' + d.getDate(),
-      full: DAYN[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()],
-      entries: [
-        { cat: 'Fuel / Petrol', amount: 500, status: 'queued', at: 'just now' },
-        { cat: 'Gate Pass (Boat Delivery)', amount: 15, status: 'approved', at: '10:42' },
-        { cat: 'Stationery & Packing Supplies', amount: 510, status: 'draft', at: '09:15' },
-        { cat: 'Meals', amount: 60, status: 'failed', at: '08:30', retryAt: '11:00' },
-        { cat: 'Shop Rent', amount: 900 + back * 20, status: 'approved', at: '08:05' },
-        { cat: 'Travel & Accommodation', amount: 45, status: 'refused', at: '07:50' }
-      ]
-    };
-  }
-  var days = [dummyDay(0), dummyDay(1), dummyDay(2)];
-
-  var pillsEl = document.getElementById('e-pills');
-  var heroLabelEl = document.getElementById('e-heroLabel');
-  var heroCountEl = document.getElementById('e-heroCount');
-  var heroTotalEl = document.getElementById('e-heroTotal');
-  var pendingEl = document.getElementById('e-pending');
-  var catsEl = document.getElementById('e-cats');
-  var entriesLabelEl = document.getElementById('e-entriesLabel');
-  var entriesEl = document.getElementById('e-entries');
-
-  var sheet = document.getElementById('e-sheet');
-  var amountEl = document.getElementById('e-amount');
-  var categoryEl = document.getElementById('e-category');
-  var pinEl = document.getElementById('e-pin');
-  var noteEl = document.getElementById('e-note');
-  var receiptNameEl = document.getElementById('e-receiptName');
-  var cameraEl = document.getElementById('e-camera');
-  var galleryEl = document.getElementById('e-gallery');
-
-  var idx = 0;
-
-  function indexOfDate(date) {
-    for (var i = 0; i < days.length; i++) { if (days[i].date === date) return i; }
-    return -1;
-  }
-
-  function buildPills() {
-    pillsEl.innerHTML = '';
-    days.forEach(function (day, i) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'pill';
-      b.textContent = day.pill;
-      b.setAttribute('aria-pressed', i === idx ? 'true' : 'false');
-      b.addEventListener('click', function () {
-        if (i === idx) return;
-        idx = i;
-        // One selected day for the whole app: Sales hears this too.
-        window.ikeDay.set(days[i].date, 'expenses');
-        render();
-      });
-      pillsEl.appendChild(b);
-    });
-  }
-
-  function render() {
-    var day = days[idx];
-    var entries = day.entries;
-
-    Array.prototype.slice.call(pillsEl.children).forEach(function (b, i) {
-      b.setAttribute('aria-pressed', i === idx ? 'true' : 'false');
-    });
-
-    var confirmed = 0, pending = 0, pendingCount = 0;
-    entries.forEach(function (e) {
-      if (CONFIRMED[e.status]) confirmed += e.amount;
-      else if (e.status !== 'refused') { pending += e.amount; pendingCount += 1; }
-    });
-
-    heroLabelEl.textContent = 'Transfers · ' + day.full;
-    heroCountEl.textContent = plural(entries.length, 'entry', 'entries');
-    heroTotalEl.textContent = money(confirmed);
-    // A figure of its own, not a footnote: this money is not in the total above.
-    pendingEl.innerHTML = pendingCount
-      ? 'Pending <b>MVR ' + esc(money(pending)) + '</b> · ' +
-        esc(plural(pendingCount, 'entry', 'entries')) + ' not counted yet'
-      : 'Pending MVR 0 · nothing waiting';
-
-    // Categories, largest first, measured against the day's largest.
-    var map = {}, order = [];
-    entries.forEach(function (e) {
-      if (!map[e.cat]) { map[e.cat] = { cat: e.cat, total: 0, n: 0 }; order.push(e.cat); }
-      map[e.cat].total += e.amount;
-      map[e.cat].n += 1;
-    });
-    var cats = order.map(function (c) { return map[c]; })
-      .sort(function (a, b) { return b.total - a.total || a.cat.localeCompare(b.cat); });
-    var top = cats.length ? cats[0].total : 0;
-    catsEl.innerHTML = cats.length ? cats.map(function (c) {
-      var w = top > 0 ? Math.max(2, Math.round(c.total / top * 100)) : 0;
-      return '<div class="catrow">' +
-        '<div class="cattop"><span class="catname">' + esc(c.cat) + '</span>' +
-        '<span class="catamt">' + esc(money(c.total)) + '</span></div>' +
-        '<div class="track"><i style="width:' + w + '%"></i></div>' +
-        '<span class="catmeta">' + esc(plural(c.n, 'entry', 'entries')) + '</span>' +
-        '</div>';
-    }).join('') : '<div class="empty">No categories yet today.</div>';
-
-    entriesLabelEl.textContent = 'Entries · ' + day.full;
-    entriesEl.innerHTML = entries.length ? entries.map(function (e) {
-      var retry = e.status === 'failed'
-        ? '<div class="retrybar"><span>Odoo did not answer. The entry is safe here. ' +
-          'It will try again at ' + esc(e.retryAt || '11:00') + '.</span>' +
-          '<button class="retry" type="button">Retry</button></div>'
-        : '';
-      return '<div class="item">' +
-        '<div class="itemtop">' +
-          '<div class="what"><span class="cat">' + esc(e.cat) + '</span>' +
-          '<span class="when">Bank transfer · ' + esc(e.at) + '</span></div>' +
-          '<div class="amtwrap"><span class="amt">' + esc(money(e.amount)) + '</span>' +
-          '<span class="chip chip-' + e.status + '">' + esc(CHIP[e.status]) + '</span></div>' +
-        '</div>' + retry +
-        '</div>';
-    }).join('') : '<div class="empty">Nothing added for this day yet.</div>';
-  }
-
-  // ---- The Add sheet ----
-  CATS.forEach(function (c) {
-    var o = document.createElement('option');
-    o.textContent = c;
-    o.value = c;
-    categoryEl.appendChild(o);
-  });
-
-  function openSheet() {
-    noteEl.textContent = '';
-    receiptNameEl.textContent = '';
-    amountEl.value = '';
-    pinEl.value = '';
-    cameraEl.value = '';
-    galleryEl.value = '';
-    categoryEl.selectedIndex = 0;
-    sheet.hidden = false;
-    amountEl.focus();
-  }
-  function closeSheet() {
-    sheet.hidden = true;
-    document.getElementById('e-add').focus();
-  }
-
-  function showReceipt(input) {
-    return function () {
-      var f = input.files && input.files[0];
-      receiptNameEl.textContent = f ? 'Receipt attached: ' + f.name : '';
-    };
-  }
-  cameraEl.addEventListener('change', showReceipt(cameraEl));
-  galleryEl.addEventListener('change', showReceipt(galleryEl));
-
-  document.getElementById('e-add').addEventListener('click', openSheet);
-  document.getElementById('e-cancel').addEventListener('click', closeSheet);
-  sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !sheet.hidden) closeSheet();
-  });
-
-  document.getElementById('e-postBtn').addEventListener('click', function () {
-    var amount = parseFloat(String(amountEl.value).replace(/,/g, ''));
-    if (!isFinite(amount) || amount <= 0) {
-      noteEl.textContent = 'Enter the amount in MVR.';
-      amountEl.focus();
-      return;
-    }
-    if (!pinEl.value) {
-      // V1 only collects the PIN; checking it is V2's, over the Worker.
-      noteEl.textContent = 'Enter your PIN.';
-      pinEl.focus();
-      return;
-    }
-    // Nothing is sent in V1, so the entry can only be waiting to be sent.
-    days[idx].entries.unshift({
-      cat: categoryEl.value, amount: amount, status: 'queued', at: 'just now'
-    });
-    closeSheet();
-    render();
-  });
-
-  // One selected day for the whole app. V1's dummy data covers three days; a
-  // day it does not know about leaves the pane where it is rather than blanking.
-  window.ikeDay.on('expenses', function (date) {
-    var i = indexOfDate(date);
-    if (i >= 0 && i !== idx) { idx = i; render(); }
-  });
-
-  var start = indexOfDate(window.ikeDay.get());
-  if (start >= 0) idx = start;
-  buildPills();
-  render();
 })();
 </script>
 </body>
