@@ -1,0 +1,4 @@
+# nWave DES runtime and probe files (local only)
+.nwave/des/commit.lock
+.nwave/des/probe/
+.nwave/des/logs/
