@@ -1,0 +1,11 @@
+{
+  "name": "ike-sales-expenses",
+  "private": true,
+  "description": "Static single-file dashboard for GitHub Pages. This manifest exists only so the acceptance oracles can drive a real browser; nothing here is deployed.",
+  "scripts": {
+    "test": "node --test tests/"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
