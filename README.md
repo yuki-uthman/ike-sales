@@ -6,6 +6,25 @@ secret, no cron, no build step. It just fetches its data live from
 [ike-data](https://github.com/yuki-uthman/ike-data), the shared Odoo pipeline
 that also backs any future dashboards (expenses, etc.).
 
+## Two panes: Sales and Quotations
+
+The page is two panes side by side — **Sales** on the left (the default) and
+**Quotations** on the right, the follow-up list that used to be its own repo,
+`ike-quotations`. Swipe left or right to move between them, or tap either tab
+in the bar along the bottom. The bar's indicator follows the swipe as it
+happens, so it always shows which pane you are on.
+
+Two things follow from the swipe belonging to the pager:
+
+- **Swiping no longer changes the day in Sales.** Pick a day from the pills or
+  the bars, or use the left/right arrow keys on a keyboard.
+- **A drag that starts on a chart or on the day pills scrolls that strip**, and
+  stops there at its ends. Start the swipe anywhere else, or tap the tab.
+
+Each pane keeps its own accent: teal for money banked, amber for money still
+awaited. The two share one file but not their code — every id and class in a
+pane is scoped to it (`s-…` / `q-…`, `.pane-sales` / `.pane-quotes`).
+
 ## One-time setup
 
 **Enable GitHub Pages**: Settings → Pages → Source: "Deploy from a branch" →
@@ -49,6 +68,37 @@ cross-repo with no server or API needed. See
 [ike-data](https://github.com/yuki-uthman/ike-data)'s README for how that
 file gets refreshed and what "Point of Sale" vs "Sales Orders" actually
 counts.
+
+## The Quotations pane
+
+Every quotation and sales order that still has money owing on it — what hasn't
+closed yet, so it can be chased. Two cards: **Quotations** that were never
+confirmed, and **Unpaid orders** that were. Above them, a bar per day showing
+how much still-open value was raised that day. It opens on today; **All**, the
+pinned pill on the left, is the whole pipeline.
+
+**Still open** means any part of the value is unsettled, and a record leaves the
+moment the last rufiyaa arrives — by invoice or at the POS. "Paid" is
+*computed*, not read: `invoice_status` and `invoice_ids` both lie on this Odoo
+instance, so the number behind each row is
+`amount_total − (paid invoice value + POS-settled value)`. A part-paid order
+shows its remaining balance, with the total beneath. The reasoning lives in
+`ike-data/scripts/fetch_quotations.py`.
+
+**Not interested ×** (inside an expanded row) hides a dead lead and takes its
+value out of the totals and the day's bar. It does **not** touch Odoo, and it
+is remembered only in that browser's `localStorage` — dismiss on a laptop and it
+is still there on a phone. A counter at the bottom of the pane lists what is
+hidden and restores it.
+
+It reads
+`https://raw.githubusercontent.com/yuki-uthman/ike-data/main/data/quotations.json`
+on load, then again every 60 seconds and whenever the tab becomes visible
+(the file itself refreshes every 15 minutes). Open rows are remembered across a
+refresh. Unlike `sales.json` it keeps no history — it is a live snapshot, and
+its day span shrinks as old quotations settle. The pane shows **customer names,
+order references and amounts owing**, so the visibility note below applies to
+it in full.
 
 ## Visibility
 
