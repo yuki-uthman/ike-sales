@@ -324,7 +324,11 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
     const pane = document.getElementById('pane-expenses');
     // The Add sheet is scoped too, but it lives outside #pager. Find it without
     // assuming any implementation id: climb from the Post button to the nearest
-    // ancestor that also holds the sheet's Amount, Category and PIN fields.
+    // ancestor that also holds the sheet's Amount, Category and PIN fields, then
+    // keep climbing to the LARGEST such ancestor that is still only the sheet —
+    // i.e. one that does not yet contain the pager. A sheet is commonly an inner
+    // panel inside its own overlay/backdrop root, and both belong to the sheet.
+    const pager = pane.parentElement;
     const norm = s => (s || '').replace(/\s+/g, ' ').trim();
     const holdsFields = el => {
       const t = norm(el.textContent);
@@ -335,6 +339,9 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
       .map(b => {
         let el = b.parentElement;
         while (el && !holdsFields(el)) el = el.parentElement;
+        while (el && el.parentElement && !el.parentElement.contains(pager)) {
+          el = el.parentElement;
+        }
         return el;
       });
     const scopes = [pane].concat(sheetRoots).filter(Boolean);
