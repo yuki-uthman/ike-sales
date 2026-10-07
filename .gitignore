@@ -1,0 +1,8 @@
+# nWave DES runtime and probe files (local only)
+.nwave/des/commit.lock
+.nwave/des/probe/
+.nwave/des/logs/
+
+# Playwright and its browsers are a test-time dependency only; the deployed
+# artefact stays a single static index.html.
+node_modules/

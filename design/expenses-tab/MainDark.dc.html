@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Expenses tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+body{margin:0;background:#0b1614;font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;color:#f2f6f5}
+button,input,select{font:inherit}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;box-sizing:border-box;background:#0b1614;display:flex;flex-direction:column;overflow:hidden">
+  <div style="flex:1;min-height:0;overflow:hidden;padding:18px 16px 0;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <span style="font-family:Manrope,sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.01em">Ike Expenses</span>
+      <span style="font-family:Manrope,sans-serif;font-weight:700;font-size:12px;letter-spacing:0.09em;text-transform:uppercase;color:#9aaba6">MRH Investment</span>
+    </div>
+    <div style="display:flex;gap:8px;overflow:hidden"><button type="button" style="flex:0 0 auto;height:44px;padding:0 16px;border:0;border-radius:999px;font-weight:600;font-size:14px;background:#11201d;color:#b7c6c2;box-shadow:0 1px 2px rgba(0,0,0,0.3)">Thu 24</button><button type="button" style="flex:0 0 auto;height:44px;padding:0 16px;border:0;border-radius:999px;font-weight:600;font-size:14px;background:#11201d;color:#b7c6c2;box-shadow:0 1px 2px rgba(0,0,0,0.3)">Fri 25</button><button type="button" style="flex:0 0 auto;height:44px;padding:0 16px;border:0;border-radius:999px;font-weight:600;font-size:14px;background:#11201d;color:#b7c6c2;box-shadow:0 1px 2px rgba(0,0,0,0.3)">Sat 26</button><button type="button" style="flex:0 0 auto;height:44px;padding:0 16px;border:0;border-radius:999px;font-weight:600;font-size:14px;background:#d98ab0;color:#1d0b14;box-shadow:0 6px 14px -6px rgba(0,0,0,0.35)">Sun 27</button><button type="button" style="flex:0 0 auto;height:44px;padding:0 16px;border:0;border-radius:999px;font-weight:600;font-size:14px;background:#11201d;color:#b7c6c2;box-shadow:0 1px 2px rgba(0,0,0,0.3)">Mon 28</button></div>
+    <div style="background:#11201d;border:1px solid rgba(255,255,255,0.08);border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,0.3),0 14px 32px -16px rgba(0,0,0,0.6);padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-family:Manrope,sans-serif;font-weight:700;font-size:12px;letter-spacing:0.09em;text-transform:uppercase;color:#9aaba6">Transfers · Sunday 27 Sep</span>
+        <span style="font-size:13px;color:#b7c6c2">4 entries</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;font-family:Manrope,sans-serif;font-weight:800;font-size:42px;line-height:1;letter-spacing:-0.025em;font-variant-numeric:tabular-nums"><span style="font-size:15px;font-weight:700;color:#b7c6c2;letter-spacing:0">MVR</span>945</div>
+    </div>
+    <div style="background:#11201d;border:1px solid rgba(255,255,255,0.08);border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,0.3),0 14px 32px -16px rgba(0,0,0,0.6);padding:14px 16px 12px">
+      <div style="display:flex;align-items:flex-end;gap:10px;height:76px;padding:0 2px"><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="width:100%;height:30px;border-radius:6px 6px 2px 2px;background:#3a2733"></div></div><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="width:100%;height:52px;border-radius:6px 6px 2px 2px;background:#3a2733"></div></div><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="width:100%;height:18px;border-radius:6px 6px 2px 2px;background:#3a2733"></div></div><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="width:100%;height:64px;border-radius:6px 6px 2px 2px;background:#d98ab0"></div></div><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="width:100%;height:24px;border-radius:6px 6px 2px 2px;background:#3a2733"></div></div><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="width:100%;height:40px;border-radius:6px 6px 2px 2px;background:#3a2733"></div></div><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="width:100%;height:10px;border-radius:6px 6px 2px 2px;background:#3a2733"></div></div></div>
+      <div style="display:flex;gap:10px;padding:6px 2px 0;font-size:12px;color:#9aaba6;font-weight:600;text-align:center"><span style="flex:1">21</span><span style="flex:1">22</span><span style="flex:1">23</span><span style="flex:1;color:#d98ab0">27</span><span style="flex:1">28</span><span style="flex:1">29</span><span style="flex:1">30</span></div>
+    </div>
+    <div style="background:#11201d;border:1px solid rgba(255,255,255,0.08);border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,0.3),0 14px 32px -16px rgba(0,0,0,0.6);padding:4px 16px">
+      <div style="display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid #1e2d2a;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:700;font-size:16px">Packaging</span><span style="font-weight:700;font-size:16px;font-variant-numeric:tabular-nums">870</span></div>
+        <div style="height:6px;border-radius:3px;background:#162622"><div style="width:100%;height:6px;border-radius:3px;background:#d98ab0"></div></div>
+        <span style="font-size:13px;color:#b7c6c2">2 entries</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid #1e2d2a;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:700;font-size:16px">Tea &amp; staff meals</span><span style="font-weight:700;font-size:16px;font-variant-numeric:tabular-nums">60</span></div>
+        <div style="height:6px;border-radius:3px;background:#162622"><div style="width:7%;height:6px;border-radius:3px;background:#d98ab0"></div></div>
+        <span style="font-size:13px;color:#b7c6c2">1 entry</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:12px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:700;font-size:16px">Gate pass (boat)</span><span style="font-weight:700;font-size:16px;font-variant-numeric:tabular-nums">15</span></div>
+        <div style="height:6px;border-radius:3px;background:#162622"><div style="width:2%;height:6px;border-radius:3px;background:#d98ab0"></div></div>
+        <span style="font-size:13px;color:#b7c6c2">1 entry</span>
+      </div>
+    </div>
+  </div>
+  <button type="button" aria-label="Add expense" style="position:absolute;right:20px;bottom:78px;width:60px;height:60px;border:0;border-radius:20px;background:#d98ab0;color:#1d0b14;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 28px -10px rgba(217,138,176,0.45)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.4;stroke-linecap:round"><path d="M12 5v14M5 12h14"></path></svg></button>
+  <nav aria-label="Sections" style="flex:0 0 auto;display:flex;justify-content:center;padding:0 16px;background:#11201d;border-top:1px solid rgba(255,255,255,0.08)">
+    <div style="position:relative;display:flex;width:100%;max-width:420px">
+      <span aria-hidden="true" style="position:absolute;top:0;left:66.666%;width:33.333%;height:3px"><span style="display:block;width:32px;height:3px;margin:0 auto;border-radius:0 0 3px 3px;background:#d98ab0"></span></span>
+      <button type="button" style="flex:1;height:58px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:600;color:#9aaba6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round"><path d="M5 20v-6M12 20V5M19 20v-9"></path></svg><span>Sales</span></button>
+      <button type="button" style="flex:1;height:58px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:600;color:#9aaba6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path></svg><span>Quotations</span></button>
+      <button type="button" aria-current="page" style="flex:1;height:58px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:700;color:#d98ab0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="6" width="18" height="13" rx="2.5"></rect><path d="M3 10h18M16 15h2"></path></svg><span>Expenses</span></button>
+    </div>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

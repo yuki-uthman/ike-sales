@@ -1,0 +1,23 @@
+{
+  "name": "odoo",
+  "main": "src/index.mjs",
+  "compatibility_date": "2026-07-30",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ike-odoo",
+      "database_id": "75e93ae9-faf4-4073-9aa9-e915bcd7f382",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "vars": {
+    "ALLOWED_ORIGIN": "https://yuki-uthman.github.io",
+    "ODOO_URL": "https://mrh-investment.odoo.com",
+    "ODOO_DB": "mrh-investment",
+    "ODOO_EMPLOYEE_ID": "1",
+    "ODOO_PAYMENT_METHOD_LINE_ID": "2"
+  }
+}
