@@ -79,3 +79,69 @@ Oracle target locator: `tests/expenses-description.test.mjs::description_is_save
 
 Verification command: `npm install --no-audit --no-fund`
 Verification command: `node --test tests/expenses-description.test.mjs`
+## V2 Description in Odoo
+
+### Purpose
+Put the description the Worker stored (V1) where the accountant reads it in Odoo: the draft hr.expense's name, which Odoo labels 'Description', next to the category.
+
+### Constraints
+- D19: name is '<category> - <description> [ike:<client_entry_id>]' when the stored description is non-empty, and exactly '<category> [ike:<client_entry_id>]' when it is ''.
+- D8: the mark search runs before every create and a found expense is adopted, so the mark stays the last token of the name and the search domain is unchanged.
+- D5/D18: no other field sent to Odoo changes; the Worker still calls only authenticate, search_read and create.
+- The receipt attachment name stays 'receipt [ike:<client_entry_id>]'.
+
+### Targets
+| Path | Decision | Reason |
+|---|---|---|
+| `worker/src/sync.mjs` | EXTEND | syncOne builds the hr.expense name; one pure helper decides it from category, description and mark. |
+
+### Paradigm
+functional
+
+### Decisions
+- Add a pure exported helper expenseName(category, description, mark) in worker/src/sync.mjs beside markFor (worker/src/sync.mjs:31): it returns `${category} - ${description} ${mark}` when description is a non-empty string and `${category} ${mark}` otherwise. It does no normalising of its own: V1 already stored the description trimmed and collapsed, and the mark is the last token in both forms.
+- syncOne (worker/src/sync.mjs:100) sends name: expenseName(row.category, row.description, mark) in place of the literal at worker/src/sync.mjs:143. row.description arrives through SYNC_COLUMNS, which V1 extended; this value touches no other file.
+- The mark search at worker/src/sync.mjs:117 is unchanged: it matches the mark as a substring, so a description in front of it cannot hide the expense or cause a second create.
+- The oracle drives the cron port of a real workerd Worker against a fake Odoo on loopback and reads the create call's name off the wire, as tests/worker-odoo-sync.test.mjs does; it seeds entries by posting through HTTP, with and without a description.
+
+### Reuse analysis
+| Symbol | Locator | Decision | Reason |
+|---|---|---|---|
+| markFor | `worker/src/sync.mjs:31` | REUSE | The mark is still derived, never stored, and stays the name's last token. |
+| syncOne | `worker/src/sync.mjs:100` | EXTEND | The one place an hr.expense is created; only its name expression changes. |
+| syncRow / dueEntries via SYNC_COLUMNS | `worker/src/save.mjs:77` | REUSE | V1 already carries description to the sync rule. |
+
+### Prefactoring
+Not applicable: The name is one expression in syncOne; extracting it into expenseName is part of this change, not a separate behaviour-preserving step.
+
+### Agreement analysis
+| Contract | Role | Locator | Decision | Reason |
+|---|---|---|---|---|
+| hr.expense create vals sent to Odoo | producer | `worker/src/sync.mjs:143` | MIGRATED | name gains ' - <description>' before the mark when there is a description; every other member is unchanged. |
+| The mark search domain [['name','like','[ike:<id>]']] | consumer | `worker/src/sync.mjs:117` | UNCHANGED_COMPATIBLE | Substring match on the mark still finds both name forms. |
+
+### Boundaries
+- Driving port: The Cloudflare cron (scheduled handler) and the Retry route, both through syncOne
+- Driven port: Odoo XML-RPC execute_kw (hr.expense search_read and create)
+- Driven port: Cloudflare D1 binding DB, table entry
+- Dependency direction: index.mjs -> sync.mjs -> {save.mjs, odoo.mjs}; expenseName is pure and depends on nothing.
+- Failure: Condition: Odoo refuses or does not answer the create | Outcome: Retry | Observation: Unchanged: the entry stays 'Not sent' with its next retry time; the next attempt finds any created expense by its mark.
+
+### Acceptance supports
+- `worker/wrangler.json`
+- `worker/migrations/0001_init.sql`
+
+### Public oracle
+Observation: The draft hr.expense created for an entry with a description is named '<category> - <description> [ike:<id>]'; one for an entry without a description keeps '<category> [ike:<id>]'.
+
+Stimulus: Post two entries through HTTP to a real workerd Worker with every migration applied — 'Fuel / Petrol' with description '  Boat   trip to Male  ' and 'Water' with none — then trigger the cron port with ODOO_URL bound to a fake Odoo; then trigger it again.
+
+Expected: Exactly two hr.expense creates: names 'Fuel / Petrol - Boat trip to Male [ike:<id1>]' and 'Water [ike:<id2>]'; the second cron run creates nothing new; both entries show 'Draft'; the set of Odoo methods called is authenticate, search_read, create.
+
+Falsifier: A name without the description when one was stored, a name with ' - ' when none was, the mark not last, a second create on the second run, or any other create member changing.
+
+### Oracle and verification
+Oracle target locator: `tests/expenses-description-odoo.test.mjs::the_draft_expense_name_carries_the_description`
+
+Verification command: `npm install --no-audit --no-fund`
+Verification command: `node --test tests/expenses-description-odoo.test.mjs`
