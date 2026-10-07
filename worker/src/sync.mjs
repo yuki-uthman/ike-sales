@@ -60,6 +60,19 @@ function firstId(value) {
 }
 
 /**
+ * The configured payment method line id, parsed totally: absent, empty, zero,
+ * negative and non-integer text all become null, and nothing here can throw, so
+ * a misconfigured var can never crash a run (D18). Surrounding whitespace is
+ * tolerated, because a dashboard value may carry it.
+ */
+function configuredId(value) {
+  const text = String(value === null || value === undefined ? '' : value).trim();
+  if (!/^\d+$/.test(text)) return null;
+  const id = Number(text);
+  return id > 0 ? id : null;
+}
+
+/**
  * One entry, one attempt. Either the entry ends up a draft expense it remembers
  * the id of, or it stays saved as 'Not sent' with its next retry time and a
  * closed code. Idempotence is structural: the mark search runs on EVERY attempt,
@@ -96,20 +109,23 @@ export async function syncOne(db, odoo, row, now = Date.now()) {
     const productId = firstId(product.value);
     if (productId === null) return fail('odoo_no_product');
 
-    // (3) So does the bank-transfer payment method line.
-    const line = await odoo.call('account.payment.method.line', 'search_read',
-      [[['name', 'like', row.payment_method_line]]], { fields: ['id'], limit: 1 });
-    if (!line.ok) return fail(line.code);
-    const lineId = firstId(line.value);
+    // (3) The bank-transfer payment method line is CONFIGURED, never searched:
+    // the live database holds two lines named 'Transfer', so a name is ambiguous
+    // and resolving by it would be wrong, not merely slow (D18).
+    const lineId = configuredId(row.payment_method_line_id);
     if (lineId === null) return fail('odoo_no_payment_method_line');
 
     // (4) No state is written and no action is ever called, so the record is
-    // born draft. No currency is sent: MVR is the company currency.
+    // born draft. No currency is sent: MVR is the company currency. The two
+    // amount members are one expression, so they cannot drift; price_unit is
+    // readonly and computed in Odoo and is never sent.
+    const amountMvr = decimal(formatLaariAsMvr(Number(row.amount_laari)));
     const created = await odoo.call('hr.expense', 'create', [[{
       name: `${row.category} ${mark}`,
       employee_id: Number(row.employee_id),
       product_id: productId,
-      total_amount: decimal(formatLaariAsMvr(Number(row.amount_laari))),
+      total_amount: amountMvr,
+      total_amount_currency: amountMvr,
       date: row.entry_date,
       payment_mode: 'company_account',
       payment_method_line_id: lineId
@@ -157,7 +173,7 @@ function withConfig(env, row) {
   return {
     ...row,
     employee_id: env.ODOO_EMPLOYEE_ID,
-    payment_method_line: env.ODOO_PAYMENT_METHOD_LINE
+    payment_method_line_id: env.ODOO_PAYMENT_METHOD_LINE_ID
   };
 }
 

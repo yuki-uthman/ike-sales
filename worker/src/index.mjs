@@ -21,6 +21,12 @@ import { runSync, syncEntry } from './sync.mjs';
 
 const RETRY_PATH = /^\/entries\/([^/]+)\/retry$/;
 
+// The one place the area prefix is written (decision 17). This Worker is the
+// Odoo layer, and expenses is one area inside it; the route vocabulary below
+// ('/entries', '/categories', RETRY_PATH) stays area-free, so a later Odoo area
+// is one more constant and one more gate rather than a rewrite of a handler.
+const AREA = '/expenses';
+
 const RECEIPT_CAP_BYTES = 1000000; // the Worker's own declared cap (decision 16)
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
 
@@ -199,18 +205,30 @@ export default {
 
     const url = new URL(request.url);
 
-    if (request.method === 'GET' && url.pathname === '/categories') {
+    // Everything this layer serves lives under the area prefix. An old
+    // unprefixed path is not redirected and not dual-mounted: it joins the
+    // refusal this Worker already gives any unknown path, so a page still
+    // calling one fails loudly. The gate sits BELOW the origin check and the
+    // OPTIONS preflight above, which is what keeps 'OPTIONS answers 204 on any
+    // path' and 'the origin check applies on every path' true by construction —
+    // an unknown path never discloses which prefix exists.
+    if (url.pathname !== AREA && !url.pathname.startsWith(AREA + '/')) {
+      return refuse(404, 'not_found', env);
+    }
+    const route = url.pathname.slice(AREA.length);
+
+    if (request.method === 'GET' && route === '/categories') {
       return json(200, { categories: listCategories() }, env);
     }
-    if (request.method === 'GET' && url.pathname === '/entries') {
+    if (request.method === 'GET' && route === '/entries') {
       return handleDay(url, env);
     }
-    if (request.method === 'POST' && url.pathname === '/entries') {
+    if (request.method === 'POST' && route === '/entries') {
       return handleSave(request, env);
     }
 
     if (request.method === 'POST') {
-      const retry = RETRY_PATH.exec(url.pathname);
+      const retry = RETRY_PATH.exec(route);
       if (retry) return handleRetry(decodeURIComponent(retry[1]), env);
     }
 

@@ -8,7 +8,7 @@
      `wrangler deploy` (D9: no build step; D10: no secret in the page — a URL is
      not a secret and no PIN or key is ever placed here). While it is empty the
      Expenses pane makes no service call and says so plainly. -->
-<meta name="ike-expenses-service" content="">
+<meta name="ike-expenses-service" content="https://odoo.ike-mrh.workers.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
@@ -1995,6 +1995,12 @@ window.ikeDay = (function () {
   }
   var BASE = serviceBase();
 
+  // BASE stays the layer ROOT, because it is the single 'is the service
+  // configured' fact every gate below reads. The expenses area lives one
+  // segment in (decision 17), and this is the only place that segment is
+  // written on the calling side.
+  var EXPENSES = BASE + '/expenses';
+
   // One in-closure state object; the renderers read nothing else.
   var state = {
     feedDays: {},      // date -> the feed's day object
@@ -2010,7 +2016,12 @@ window.ikeDay = (function () {
     // disabled — an entry whose category the service never offered cannot be
     // sent at all, rather than merely being discouraged by a message.
     catsState: BASE ? 'loading' : 'unset',
-    catsReason: null
+    catsReason: null,
+    // D12's Retry press: the client_entry_id whose call is in flight, so the
+    // disabled flag survives every re-render, and one note keyed by row, so a
+    // message can only ever appear on the row that was pressed.
+    retrying: null,
+    retryNote: null
   };
 
   var CATS_MESSAGE = {
@@ -2120,12 +2131,17 @@ window.ikeDay = (function () {
       return;
     }
     entriesEl.innerHTML = state.entries.length ? state.entries.map(function (e) {
-      // V2's contract carries no next-retry time, so no row offers Retry yet;
-      // the branch stays so V4/V5 need no page change.
+      // The bar appears exactly when the service's own projection carries a
+      // next-retry time. The automatic retry stays true after a failed press,
+      // so its sentence stays and the note is one more sentence beside it.
+      var note = state.retryNote && state.retryNote.id === e.client_entry_id
+        ? ' ' + esc(state.retryNote.text)
+        : '';
       var retry = e.next_retry_at
         ? '<div class="retrybar"><span>Odoo did not answer. The entry is safe here. ' +
-          'It will try again at ' + esc(e.next_retry_at) + '.</span>' +
-          '<button class="retry" type="button">Retry</button></div>'
+          'It will try again at ' + esc(e.next_retry_at) + '.' + note + '</span>' +
+          '<button class="retry" type="button" data-entry="' + esc(e.client_entry_id) + '"' +
+          (state.retrying === e.client_entry_id ? ' disabled' : '') + '>Retry</button></div>'
         : '';
       var cls = CHIP_CLASS[e.status] || '';
       return '<div class="item">' +
@@ -2204,7 +2220,7 @@ window.ikeDay = (function () {
   function loadEntries() {
     if (!BASE) { renderEntries(); return Promise.resolve(); }
     var asked = state.day;
-    return fetch(BASE + '/entries?date=' + encodeURIComponent(asked), { cache: 'no-store' })
+    return fetch(EXPENSES + '/entries?date=' + encodeURIComponent(asked), { cache: 'no-store' })
       .then(function (res) {
         return res.json().catch(function () { return {}; })
           .then(function (body) { return { status: res.status, body: body }; });
@@ -2228,6 +2244,55 @@ window.ikeDay = (function () {
       });
   }
 
+  // D12's Retry press. The row that comes back is the service's own projection,
+  // so 'Draft' on success and 'Not sent' with the NEW next-try time are both the
+  // Worker's words; this never patches a chip and never reasons about a status.
+  // One press at a time, and no reload.
+  function retryEntry(id) {
+    if (!BASE || !id || state.retrying) return Promise.resolve();
+    state.retrying = id;
+    state.retryNote = null;
+    renderEntries();
+
+    var done = function (text) {
+      state.retrying = null;
+      state.retryNote = text ? { id: id, text: text } : null;
+      renderEntries();
+    };
+    // Every failure a press can meet — an origin refusal, a dead service, a
+    // 404 or a 503 — is one event the person cannot act on differently, and no
+    // body of theirs may ever be shown raw.
+    var MESSAGE = 'Could not reach the expenses service just now. ' +
+      'The entry is safe here — try again.';
+
+    return fetch(EXPENSES + '/entries/' + encodeURIComponent(id) + '/retry',
+      { method: 'POST' })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; })
+          .then(function (body) { return { status: res.status, body: body }; });
+      })
+      .then(function (r) {
+        if (r.status === 200 && r.body && r.body.entry) {
+          var fresh = r.body.entry;
+          state.entries = (state.entries || []).map(function (e) {
+            return e.client_entry_id === fresh.client_entry_id ? fresh : e;
+          });
+          done(null);
+          return;
+        }
+        done(MESSAGE);
+      })
+      .catch(function () { done(MESSAGE); });
+  }
+
+  // The list is rebuilt with innerHTML on every render, so the press is heard
+  // once on the card itself rather than on buttons that do not outlive a poll.
+  entriesEl.addEventListener('click', function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest('button.retry') : null;
+    if (!btn || btn.disabled) return;
+    retryEntry(btn.getAttribute('data-entry'));
+  });
+
   function loadCategories() {
     if (!BASE) {
       state.catsState = 'unset';
@@ -2241,7 +2306,7 @@ window.ikeDay = (function () {
       state.catsState = 'loading';
       renderCategories();
     }
-    return fetch(BASE + '/categories', { cache: 'no-store' })
+    return fetch(EXPENSES + '/categories', { cache: 'no-store' })
       .then(function (res) {
         // A rejected fetch and an origin refusal are the one event (decision
         // 12); a non-200 names its status instead.
@@ -2422,7 +2487,7 @@ window.ikeDay = (function () {
     };
     if (base64) body.receipt = base64;
 
-    fetch(BASE + '/entries', {
+    fetch(EXPENSES + '/entries', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body)

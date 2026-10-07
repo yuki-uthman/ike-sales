@@ -48,7 +48,10 @@ const ENTRY_MEMBERS = [
 
 // D4: the one employee every expense belongs to.
 const EMPLOYEE_ID = 1;
-const PAYMENT_LINE_NAME = 'Bank Transfer MVR';
+// D18: the live bank-transfer payment method line is named by its ID, never by a
+// name — the live database holds two lines called 'Transfer' and none called
+// 'Bank Transfer MVR'.
+const PAYMENT_LINE_ID = 2;
 
 const ODOO_DB = 'mrh-investment';
 const ODOO_USER = 'mrhpvt@gmail.com';
@@ -292,17 +295,18 @@ async function readConfig() {
   const cfg = JSON.parse(await fs.readFile(path.join(WORKER, 'wrangler.json'), 'utf8'));
   assert.deepEqual(cfg.triggers && cfg.triggers.crons, [CRON],
     'the config declares D13\'s 15-minute schedule as the cron driving port');
-  assert.ok(typeof cfg.migrations_dir === 'string');
   assert.equal((cfg.d1_databases || []).length, 1);
+  assert.ok(typeof cfg.d1_databases[0].migrations_dir === 'string');
   const vars = cfg.vars || {};
   assert.equal(vars.ODOO_URL, 'https://mrh-investment.odoo.com',
     'the Odoo endpoint lives in config, not as a literal in code');
   assert.equal(vars.ODOO_DB, ODOO_DB);
   assert.equal(String(vars.ODOO_EMPLOYEE_ID), String(EMPLOYEE_ID),
     'D4\'s one employee id is configuration');
-  assert.ok(typeof vars.ODOO_PAYMENT_METHOD_LINE === 'string'
-    && vars.ODOO_PAYMENT_METHOD_LINE.trim() !== '',
-    'the bank-transfer payment method line is named in config');
+  assert.equal(String(vars.ODOO_PAYMENT_METHOD_LINE_ID), String(PAYMENT_LINE_ID),
+    "the bank-transfer payment method line is identified in config by its live id (D18)");
+  assert.ok(!('ODOO_PAYMENT_METHOD_LINE' in vars),
+    'and never by an ambiguous name');
   // The login pair is a pair of secrets: it is never committed to the config.
   assert.ok(!('ODOO_API_KEY' in vars), 'ODOO_API_KEY is a Worker secret, never a var');
   assert.ok(!('ODOO_USERNAME' in vars), 'ODOO_USERNAME is a Worker secret, never a var');
@@ -328,7 +332,7 @@ async function startWorker(cfg, { persist, odooUrl, apiKey = ODOO_KEY, username 
       ODOO_USERNAME: username,
       ODOO_API_KEY: apiKey,
       ODOO_EMPLOYEE_ID: String(EMPLOYEE_ID),
-      ODOO_PAYMENT_METHOD_LINE: PAYMENT_LINE_NAME
+      ODOO_PAYMENT_METHOD_LINE_ID: String(PAYMENT_LINE_ID)
     },
     port: 0
   });
@@ -363,7 +367,8 @@ async function startWorker(cfg, { persist, odooUrl, apiKey = ODOO_KEY, username 
 }
 
 async function applySchema(db, cfg) {
-  const sql = await fs.readFile(path.join(WORKER, cfg.migrations_dir, '0001_init.sql'), 'utf8');
+  const sql = await fs.readFile(
+    path.join(WORKER, cfg.d1_databases[0].migrations_dir, '0001_init.sql'), 'utf8');
   const statements = sql
     .split('\n').map(l => l.replace(/--.*$/, '')).join('\n')
     .split(';').map(s => s.trim()).filter(Boolean);
@@ -417,7 +422,8 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   const PRODUCT2 = { id: 78, name: 'Meals', can_be_expensed: true };
   const NOT_EXPENSABLE = { id: 79, name: 'Water', can_be_expensed: false };
   odoo.seed('product.product', [PRODUCT, PRODUCT2, NOT_EXPENSABLE]);
-  odoo.seed('account.payment.method.line', [{ id: 55, name: PAYMENT_LINE_NAME }]);
+  // No account.payment.method.line is seeded at all: D18 forbids searching that
+  // model, so any search for it would find nothing and refuse the entry.
 
   const start = async opts => {
     const w = await startWorker(cfg, opts);
@@ -428,7 +434,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   await applySchema(w.db, cfg);
 
   const today = maldivesDate();
-  const save = (id, over = {}) => w.call('POST', '/entries', {
+  const save = (id, over = {}) => w.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Salary', amount: '250.50', client_entry_id: id, ...over }
   });
 
@@ -461,7 +467,8 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   assert.equal(vals.total_amount, '250.50',
     'the amount crosses the wire as an exact decimal, not a binary float');
   assert.equal(vals.payment_mode, 'company_account', 'company-paid, not out of pocket (D11)');
-  assert.equal(vals.payment_method_line_id, 55, 'paid by the configured bank-transfer line');
+  assert.equal(vals.payment_method_line_id, PAYMENT_LINE_ID,
+    'paid by the configured bank-transfer line, named by its live id (D18)');
   assert.equal(vals.date, (await row(w.db, 'ce-a')).entry_date,
     'the expense is dated by the entry\'s stored UTC+5 day (D16)');
   assert.equal(vals.date, today);
@@ -497,7 +504,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
     'nothing is ever submitted, approved, posted or paid (D5)');
 
   // ---- and the page now sees 'Draft' with no retry bar (D12) -----------------
-  const afterCreate = await w.call('GET', `/entries?date=${today}`);
+  const afterCreate = await w.call('GET', `/expenses/entries?date=${today}`);
   assert.equal(afterCreate.res.status, 200);
   const sentEntry = afterCreate.json.entries.find(e => e.client_entry_id === 'ce-a');
   assertEntryShape(sentEntry, {
@@ -535,7 +542,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
     const at = Date.now();
     await w.tick();
     odoo.set('ok');
-    const listed = (await w.call('GET', `/entries?date=${today}`)).json.entries
+    const listed = (await w.call('GET', `/expenses/entries?date=${today}`)).json.entries
       .find(e => e.client_entry_id === id);
     assertRetryTime(listed, { expectedMinutes: BACKOFF_MINUTES[0], after: at });
     assertEntryShape(listed, { amount_mvr: '12.00', category: 'Salary', status: NOT_SENT });
@@ -561,7 +568,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   const good = await row(w.db, 'ce-good');
   assert.equal(good.status, 'draft', 'one bad entry does not block the rest of the run');
   assert.ok(good.odoo_id > 0);
-  const mixed = (await w.call('GET', `/entries?date=${today}`)).json.entries;
+  const mixed = (await w.call('GET', `/expenses/entries?date=${today}`)).json.entries;
   assertRetryTime(mixed.find(e => e.client_entry_id === 'ce-bad'),
     { expectedMinutes: BACKOFF_MINUTES[0], after: atMixed });
   assert.equal(mixed.find(e => e.client_entry_id === 'ce-good').status, DRAFT);
@@ -579,7 +586,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
     .filter(e => String(e.name).includes('[ike:ce-d]'));
   assert.equal(marked.length, 1, 'but Odoo committed the expense');
 
-  const retried = await w.call('POST', '/entries/ce-d/retry');
+  const retried = await w.call('POST', '/expenses/entries/ce-d/retry');
   assert.equal(retried.res.status, 200);
   assertEntryShape(retried.json.entry, {
     client_entry_id: 'ce-d', status: DRAFT, next_retry_at: null, amount_mvr: '31.00'
@@ -599,14 +606,14 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   // ============================================ the Retry port, D12's button
   // An entry already Draft is answered with its projection and zero Odoo calls.
   const before = odoo.state.calls.length;
-  const again = await w.call('POST', '/entries/ce-d/retry');
+  const again = await w.call('POST', '/expenses/entries/ce-d/retry');
   assert.equal(again.res.status, 200);
   assert.deepEqual(again.json.entry, retried.json.entry);
   assert.equal(odoo.state.calls.length, before, 'a sent entry is not sent again');
   assert.ok(!('saved' in again.json),
     "'saved: true' still occurs in exactly one place in the service: the save answer");
 
-  const unknown = await w.call('POST', '/entries/ce-nope/retry');
+  const unknown = await w.call('POST', '/expenses/entries/ce-nope/retry');
   assert.equal(unknown.res.status, 404);
   assert.equal(unknown.json.saved, false);
   assert.equal(unknown.json.error, 'not_found');
@@ -617,14 +624,14 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   odoo.set('http500');
   for (const [i, minutes] of [BACKOFF_MINUTES[0], BACKOFF_MINUTES[1], BACKOFF_MINUTES[2]].entries()) {
     const at = Date.now();
-    const answer = await w.call('POST', '/entries/ce-b/retry');
+    const answer = await w.call('POST', '/expenses/entries/ce-b/retry');
     assert.equal(answer.res.status, 200);
     assertRetryTime(answer.json.entry, { expectedMinutes: minutes, after: at });
     const r = await row(w.db, 'ce-b');
     assert.equal(r.attempts, i + 1, 'attempts is the honest count of tries');
   }
   odoo.set('ok');
-  const recovered = await w.call('POST', '/entries/ce-b/retry');
+  const recovered = await w.call('POST', '/expenses/entries/ce-b/retry');
   assert.equal(recovered.json.entry.status, DRAFT, 'Retry sends it the moment Odoo is back');
   assert.equal(recovered.json.entry.next_retry_at, null);
   assert.equal((await row(w.db, 'ce-b')).attempts, 4,
@@ -649,7 +656,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
     persist: path.join(root, 'badauth'), odooUrl: odoo.url, apiKey: 'wrong-key'
   });
   await applySchema(badAuth.db, cfg);
-  await badAuth.call('POST', '/entries', {
+  await badAuth.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Salary', amount: '8.00', client_entry_id: 'ce-auth' }
   });
   const authAt = Date.now();
@@ -660,7 +667,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
     'a refused login is a closed code, never a crash and never Odoo\'s own text');
   assert.equal(authRow.odoo_id, null);
   assertRetryTime(
-    (await badAuth.call('GET', `/entries?date=${today}`)).json.entries
+    (await badAuth.call('GET', `/expenses/entries?date=${today}`)).json.entries
       .find(e => e.client_entry_id === 'ce-auth'),
     { expectedMinutes: BACKOFF_MINUTES[0], after: authAt });
 
@@ -668,8 +675,8 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   const everyAnswer = JSON.stringify([
     saved.json, afterCreate.json, retried.json, again.json, unknown.json,
     recovered.json, mixed,
-    (await w.call('GET', `/entries?date=${today}`)).json,
-    (await w.call('GET', '/categories')).json
+    (await w.call('GET', `/expenses/entries?date=${today}`)).json,
+    (await w.call('GET', '/expenses/categories')).json
   ]);
   assert.ok(!everyAnswer.includes(ODOO_KEY), 'the key never appears in any answer');
   assert.ok(!everyAnswer.includes(ODOO_USER), 'nor does the login name');

@@ -7,7 +7,8 @@
 //
 // Driving ports: the Cloudflare cron (D13's */15 schedule, reached through
 // workerd's own /cdn-cgi/handler/scheduled port with NO Origin header) and
-// HTTP (POST /entries, GET /entries, POST /entries/<id>/retry).
+// HTTP (POST /expenses/entries, GET /expenses/entries,
+// POST /expenses/entries/<id>/retry — D17).
 //
 // Driven ports: the D1 binding (read back directly, and used to apply the
 // schema SSOT worker/migrations/0001_init.sql) and Odoo's XML-RPC endpoint,
@@ -46,7 +47,8 @@ const ENTRY_MEMBERS = [
 ];
 
 const EMPLOYEE_ID = 1;
-const PAYMENT_LINE_NAME = 'Bank Transfer MVR';
+// D18: the bank-transfer line is configuration by live id, never by name.
+const PAYMENT_LINE_ID = 2;
 const ODOO_DB = 'mrh-investment';
 const ODOO_USER = 'mrhpvt@gmail.com';
 const ODOO_KEY = 'rpc-key-must-never-escape-5e2b77';
@@ -323,7 +325,7 @@ async function startWorker(cfg, { persist, odooUrl }) {
       ODOO_USERNAME: ODOO_USER,
       ODOO_API_KEY: ODOO_KEY,
       ODOO_EMPLOYEE_ID: String(EMPLOYEE_ID),
-      ODOO_PAYMENT_METHOD_LINE: PAYMENT_LINE_NAME
+      ODOO_PAYMENT_METHOD_LINE_ID: String(PAYMENT_LINE_ID)
     },
     port: 0
   });
@@ -357,7 +359,8 @@ async function startWorker(cfg, { persist, odooUrl }) {
 }
 
 async function applySchema(db, cfg) {
-  const sql = await fs.readFile(path.join(WORKER, cfg.migrations_dir, '0001_init.sql'), 'utf8');
+  const sql = await fs.readFile(
+    path.join(WORKER, cfg.d1_databases[0].migrations_dir, '0001_init.sql'), 'utf8');
   const statements = sql
     .split('\n').map(l => l.replace(/--.*$/, '')).join('\n')
     .split(';').map(s => s.trim()).filter(Boolean);
@@ -395,18 +398,18 @@ test('worker_reads_odoo_state_back_into_the_chip_and_writes_nothing', async t =>
   });
 
   odoo.seed('product.product', [{ id: 77, name: 'Salary', can_be_expensed: true }]);
-  odoo.seed('account.payment.method.line', [{ id: 55, name: PAYMENT_LINE_NAME }]);
+  // No account.payment.method.line seed: D18 forbids searching that model.
 
   const w = await startWorker(cfg, { persist: path.join(root, 'main'), odooUrl: odoo.url });
   t.after(async () => { try { await w.mf.dispose(); } catch { /* done */ } });
   await applySchema(w.db, cfg);
 
   const today = maldivesDate();
-  const save = (id, over = {}) => w.call('POST', '/entries', {
+  const save = (id, over = {}) => w.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Salary', amount: '10.00', client_entry_id: id, ...over }
   });
   const chips = async () => {
-    const got = await w.call('GET', `/entries?date=${today}`);
+    const got = await w.call('GET', `/expenses/entries?date=${today}`);
     assert.equal(got.res.status, 200);
     return new Map(got.json.entries.map(e => [e.client_entry_id, e]));
   };
@@ -563,7 +566,7 @@ test('worker_reads_odoo_state_back_into_the_chip_and_writes_nothing', async t =>
   // ===================================================================== §7
   // Retry on an entry that is already in Odoo sends nothing, whatever its chip.
   const callsBefore = odoo.state.calls.length;
-  const retried = await w.call('POST', '/entries/ce-01/retry');
+  const retried = await w.call('POST', '/expenses/entries/ce-01/retry');
   assert.equal(retried.res.status, 200);
   assertEntryShape(retried.json.entry, { client_entry_id: 'ce-01', status: APPROVED, next_retry_at: null });
   assert.equal(odoo.state.calls.length, callsBefore,
@@ -571,7 +574,7 @@ test('worker_reads_odoo_state_back_into_the_chip_and_writes_nothing', async t =>
   assert.ok(!('saved' in retried.json),
     "'saved: true' still occurs in exactly one place in the service: the save answer");
 
-  const refusedRetry = await w.call('POST', '/entries/ce-07/retry');
+  const refusedRetry = await w.call('POST', '/expenses/entries/ce-07/retry');
   assert.equal(refusedRetry.res.status, 200);
   assertEntryShape(refusedRetry.json.entry, { client_entry_id: 'ce-07', status: REFUSED, next_retry_at: null });
 
@@ -622,7 +625,7 @@ test('worker_reads_odoo_state_back_into_the_chip_and_writes_nothing', async t =>
 
   // ---- and the new chips disclose nothing new over the wire ----------------
   const everyAnswer = JSON.stringify([
-    (await w.call('GET', `/entries?date=${today}`)).json,
+    (await w.call('GET', `/expenses/entries?date=${today}`)).json,
     retried.json, refusedRetry.json
   ]);
   assert.ok(!everyAnswer.includes(ODOO_KEY), 'the key never appears in any answer');

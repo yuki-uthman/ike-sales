@@ -11,7 +11,7 @@
 // the store actually holds.
 //
 // Every name asserted below is declared by the handover's HTTP contract: the
-// paths /entries, /categories, the request members pin/category/amount/receipt/
+// paths /expenses/entries, /expenses/categories (D17), the request members pin/category/amount/receipt/
 // client_entry_id, the six response members client_entry_id/amount_mvr/category/
 // status/receipt_present/receipt_bytes, the error codes, and D12's status word
 // "Waiting to send". Config facts (main, compatibility date, the D1 binding
@@ -78,7 +78,7 @@ async function readConfig() {
     'wrangler.json declares a compatibility date');
   assert.equal((cfg.d1_databases || []).length, 1,
     'the one driven port is a single D1 binding (decision 17)');
-  assert.ok(typeof cfg.migrations_dir === 'string',
+  assert.ok(typeof cfg.d1_databases[0].migrations_dir === 'string',
     'wrangler.json declares migrations_dir, so deploy and this oracle read one schema');
   assert.equal((cfg.vars || {}).ALLOWED_ORIGIN, EXPECTED_ALLOWED_ORIGIN,
     'ALLOWED_ORIGIN lives in config, not as a literal in code (decision 9)');
@@ -130,7 +130,7 @@ async function startWorker(cfg, { pin, persist }) {
  * this way, nothing below can run — which is itself the point.
  */
 async function applySchema(db, cfg) {
-  const file = path.join(WORKER, cfg.migrations_dir, '0001_init.sql');
+  const file = path.join(WORKER, cfg.d1_databases[0].migrations_dir, '0001_init.sql');
   const sql = await fs.readFile(file, 'utf8');
   const statements = sql
     .split('\n').map(line => line.replace(/--.*$/, '')).join('\n')
@@ -202,7 +202,7 @@ test('worker_answers_saved_only_after_durable_store', async t => {
     pin: PIN, category: 'Salary', amount: '250.50',
     receipt: b64(receipt), client_entry_id: 'ce-1'
   };
-  const first = await w.call('POST', '/entries', { body: save });
+  const first = await w.call('POST', '/expenses/entries', { body: save });
   assertJsonAnswer(first);
   assert.equal(first.res.status, 200);
   assert.equal(first.json.saved, true, 'the save is the one place that answers saved: true');
@@ -221,7 +221,7 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   assert.equal(stored.entry_date, maldivesDate(), 'the day is the UTC+5 date of saving (D16)');
 
   // ---- the same client entry id twice stores one entry, not two (D10) ----
-  const second = await w.call('POST', '/entries', { body: save });
+  const second = await w.call('POST', '/expenses/entries', { body: save });
   assert.equal(second.res.status, 200);
   assert.deepEqual(second.json, first.json,
     'the second send answers about the row the first send stored');
@@ -229,7 +229,7 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   assert.equal(rows.n, 1, 'one row, not two');
 
   // ---- the day's entries, in saved_at then client_entry_id order ----
-  const later = await w.call('POST', '/entries', {
+  const later = await w.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Meals', amount: 42, client_entry_id: 'ce-2' }
   });
   assert.equal(later.res.status, 200);
@@ -239,7 +239,7 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   });
 
   const today = maldivesDate();
-  const day = await w.call('GET', `/entries?date=${today}`);
+  const day = await w.call('GET', `/expenses/entries?date=${today}`);
   assertJsonAnswer(day);
   assert.equal(day.res.status, 200);
   assert.equal(day.json.date, today);
@@ -249,20 +249,20 @@ test('worker_answers_saved_only_after_durable_store', async t => {
     'the listed entry is byte-identical to the one the save answered, so it came out of the store');
   for (const e of day.json.entries) assertEntryShape(e, {});
 
-  const implied = await w.call('GET', '/entries');
+  const implied = await w.call('GET', '/expenses/entries');
   assert.equal(implied.res.status, 200);
   assert.equal(implied.json.date, today, "an omitted date resolves to D16's UTC+5 day and is echoed");
   assert.deepEqual(implied.json.entries, day.json.entries);
 
   // ---- the 21 categories, in D7's order, with no PIN (D7, decision 13) ----
-  const cats = await w.call('GET', '/categories');
+  const cats = await w.call('GET', '/expenses/categories');
   assertJsonAnswer(cats);
   assert.equal(cats.res.status, 200);
   assert.deepEqual(cats.json.categories, CATEGORIES_D7,
     'the Worker serves exactly D7\'s 21 names in D7\'s order, without a PIN');
 
   // ---- the preflight a cross-origin JSON POST needs (decision 9) ----
-  const pre = await w.call('OPTIONS', '/entries');
+  const pre = await w.call('OPTIONS', '/expenses/entries');
   assert.equal(pre.res.status, 204);
   assert.equal(pre.text, '', 'the preflight body is empty');
   assert.equal(pre.res.headers.get('access-control-allow-origin'), EXPECTED_ALLOWED_ORIGIN);
@@ -273,38 +273,38 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   // ---- the boundaries, none of which can answer 'saved' (decision 16) ----
   const body = over => ({ ...save, client_entry_id: `ce-x-${Math.random()}`, ...over });
 
-  assertRefusal(await w.call('POST', '/entries', { body: body({ pin: OTHER_PIN }), ip: '10.0.0.1' }),
+  assertRefusal(await w.call('POST', '/expenses/entries', { body: body({ pin: OTHER_PIN }), ip: '10.0.0.1' }),
     403, 'wrong_pin');
 
   for (const origin of ['https://evil.example', null]) {
-    const bad = await w.call('POST', '/entries',
+    const bad = await w.call('POST', '/expenses/entries',
       { origin, body: body({ pin: OTHER_PIN, category: 'nope', amount: '-1' }) });
     assertRefusal(bad, 403, 'origin_not_allowed');
   }
-  const badOriginGet = await w.call('GET', '/categories', { origin: 'https://evil.example' });
+  const badOriginGet = await w.call('GET', '/expenses/categories', { origin: 'https://evil.example' });
   assertRefusal(badOriginGet, 403, 'origin_not_allowed');
 
-  assertRefusal(await w.call('POST', '/entries', { body: body({ category: 'Mileage' }) }),
+  assertRefusal(await w.call('POST', '/expenses/entries', { body: body({ category: 'Mileage' }) }),
     422, 'unknown_category');
 
   for (const amount of [0, -5, 12.345, 'abc', '0.00', '']) {
-    assertRefusal(await w.call('POST', '/entries', { body: body({ amount }) }),
+    assertRefusal(await w.call('POST', '/expenses/entries', { body: body({ amount }) }),
       422, 'amount_not_positive_mvr');
   }
 
   for (const client_entry_id of [undefined, '', '   ']) {
-    assertRefusal(await w.call('POST', '/entries', { body: { ...save, client_entry_id } }),
+    assertRefusal(await w.call('POST', '/expenses/entries', { body: { ...save, client_entry_id } }),
       422, 'invalid_client_entry_id');
   }
-  assertRefusal(await w.call('POST', '/entries', { raw: '{not json' }), 422, 'bad_json');
-  assertRefusal(await w.call('POST', '/entries', { body: body({ receipt: '!!!not base64!!!' }) }),
+  assertRefusal(await w.call('POST', '/expenses/entries', { raw: '{not json' }), 422, 'bad_json');
+  assertRefusal(await w.call('POST', '/expenses/entries', { body: body({ receipt: '!!!not base64!!!' }) }),
     422, 'bad_receipt_base64');
 
   assertRefusal(await w.call('GET', '/nowhere'), 404, 'not_found');
-  assertRefusal(await w.call('DELETE', '/entries'), 404, 'not_found');
+  assertRefusal(await w.call('DELETE', '/expenses/entries'), 404, 'not_found');
 
   // ---- the receipt cap is the Worker's own, and it is exact ----
-  const atCap = await w.call('POST', '/entries', {
+  const atCap = await w.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Fuel / Petrol', amount: '1999.99',
       receipt: b64(Buffer.alloc(RECEIPT_CAP, 0x7f)), client_entry_id: 'ce-cap' }
   });
@@ -316,7 +316,7 @@ test('worker_answers_saved_only_after_durable_store', async t => {
       .bind('ce-cap').first()).n,
     RECEIPT_CAP, 'the capped receipt is stored whole');
 
-  const overCap = await w.call('POST', '/entries', {
+  const overCap = await w.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Fuel / Petrol', amount: '10.00',
       receipt: b64(Buffer.alloc(RECEIPT_CAP + 1, 0x7f)), client_entry_id: 'ce-over' }
   });
@@ -332,10 +332,10 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   const ip = '203.0.113.7';
   for (let i = 1; i <= 5; i++) {
     assertRefusal(
-      await w.call('POST', '/entries', { body: body({ pin: OTHER_PIN }), ip }),
+      await w.call('POST', '/expenses/entries', { body: body({ pin: OTHER_PIN }), ip }),
       403, 'wrong_pin');
   }
-  const limited = await w.call('POST', '/entries', { body: body({ pin: OTHER_PIN }), ip });
+  const limited = await w.call('POST', '/expenses/entries', { body: body({ pin: OTHER_PIN }), ip });
   assertRefusal(limited, 429, 'too_many_wrong_pins');
   assert.match(limited.res.headers.get('retry-after') || '', /^\d+$/,
     'Retry-After is whole seconds');
@@ -344,7 +344,7 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   assert.ok(retryAt > Date.now() - 1000 && retryAt <= Date.now() + 11000,
     'retry_at is the end of the current 10-second window');
 
-  const correctButLimited = await w.call('POST', '/entries', {
+  const correctButLimited = await w.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Water', amount: '5.00', client_entry_id: 'ce-blocked' }, ip
   });
   assertRefusal(correctButLimited, 429, 'too_many_wrong_pins');
@@ -360,7 +360,7 @@ test('worker_answers_saved_only_after_durable_store', async t => {
     'only failed comparisons consume budget, and it stops at the limit');
 
   await sleep(Math.max(0, retryAt - Date.now()) + 300);
-  const nextWindow = await w.call('POST', '/entries', {
+  const nextWindow = await w.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Water', amount: '5.00', client_entry_id: 'ce-next' }, ip
   });
   assert.equal(nextWindow.res.status, 200, 'the next window admits a correct PIN again');
@@ -384,7 +384,7 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   await w.mf.dispose();
 
   w = await start({ pin: PIN, persist: mainDir });
-  const afterRestart = await w.call('GET', `/entries?date=${today}`);
+  const afterRestart = await w.call('GET', `/expenses/entries?date=${today}`);
   assert.equal(afterRestart.res.status, 200);
   assert.deepEqual(
     afterRestart.json.entries.find(e => e.client_entry_id === 'ce-1'), beforeStop,
@@ -398,15 +398,15 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   await w.mf.dispose();
   w = await start({ pin: OTHER_PIN, persist: mainDir });
   // the old PIN stops working at once
-  assertRefusal(await w.call('POST', '/entries', { body: body({ pin: PIN }), ip: '10.0.0.2' }),
+  assertRefusal(await w.call('POST', '/expenses/entries', { body: body({ pin: PIN }), ip: '10.0.0.2' }),
     403, 'wrong_pin');
-  const withNewPin = await w.call('POST', '/entries', {
+  const withNewPin = await w.call('POST', '/expenses/entries', {
     body: { pin: OTHER_PIN, category: 'Internet', amount: '99.00', client_entry_id: 'ce-3' },
     ip: '10.0.0.2'
   });
   assert.equal(withNewPin.res.status, 200, 'the new PIN is accepted immediately');
   assert.equal(withNewPin.json.saved, true);
-  const untouched = await w.call('GET', `/entries?date=${today}`);
+  const untouched = await w.call('GET', `/expenses/entries?date=${today}`);
   assert.deepEqual(
     untouched.json.entries.find(e => e.client_entry_id === 'ce-1'), beforeStop,
     'the entries saved under the old secret are untouched');
@@ -416,14 +416,14 @@ test('worker_answers_saved_only_after_durable_store', async t => {
   await applySchema(broken.db, cfg);
   await broken.db.prepare('DROP TABLE entry').run();
 
-  const notStored = await broken.call('POST', '/entries', {
+  const notStored = await broken.call('POST', '/expenses/entries', {
     body: { pin: PIN, category: 'Gifts', amount: '77.00', client_entry_id: 'ce-fail' }
   });
   assertRefusal(notStored, 503, 'not_stored');
   assert.ok(!('entry' in notStored.json),
     'a save that was not stored answers no entry');
 
-  assertRefusal(await broken.call('GET', `/entries?date=${today}`), 503, 'not_read');
+  assertRefusal(await broken.call('GET', `/expenses/entries?date=${today}`), 503, 'not_read');
 
   // The save-first falsifier passed the origin, budget and PIN gates and failed
   // at the save itself: pin_attempt is intact and consumed nothing.

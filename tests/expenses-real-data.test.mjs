@@ -111,8 +111,29 @@ function feedWithoutToday() {
   return feedDocument([DAY_EMPTY, DAY_FULL]);
 }
 
-async function startStaticServer(host) {
-  const html = await fs.readFile(path.join(REPO, 'index.html'));
+/**
+ * Serves index.html as GitHub Pages does.
+ *
+ * `blankServiceMeta` exists for section 7 alone. That section's claim is "?api=
+ * is ignored off loopback", and it reads that ignoring through the only words a
+ * page with no service configured can say. Now that the shipped page carries the
+ * deployed layer's address in its meta line, an off-loopback page would read
+ * that address instead of saying nothing — so this server blanks that one
+ * attribute for that one section, leaving the claim word for word. The shipped
+ * bytes, meta included, are the new Vc oracle's business
+ * (tests/odoo-layer-go-live.test.mjs). Sections 1-6 run on 127.0.0.1, where the
+ * meta is never read, and are served verbatim.
+ */
+async function startStaticServer(host, { blankServiceMeta = false } = {}) {
+  let html = await fs.readFile(path.join(REPO, 'index.html'));
+  if (blankServiceMeta) {
+    const before = html.toString('utf8');
+    const after = before.replace(
+      /(<meta name="ike-expenses-service" content=")[^"]*(">)/, '$1$2');
+    assert.notEqual(after, before,
+      'the shipped page carries the one meta line this section blanks');
+    html = Buffer.from(after, 'utf8');
+  }
   const server = http.createServer((req, res) => {
     if ((req.url || '/').split('?')[0] === '/' || req.url.startsWith('/index.html')) {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -340,14 +361,14 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
     'every feed day is a selectable pill, newest first');
 
   // The entries card is the service's rows and nothing else: the store is empty.
-  const emptyDay = await service(serviceOrigin, pageOrigin, `/entries?date=${TODAY}`);
+  const emptyDay = await service(serviceOrigin, pageOrigin, `/expenses/entries?date=${TODAY}`);
   assert.equal(emptyDay.status, 200);
   assert.deepEqual(emptyDay.body.entries, [], 'the service holds nothing for today yet');
   assert.deepEqual(await readEntries(page), [],
     'the pane shows no entry when the service has none');
 
   // The sheet's select is the service's category list, in the service's order.
-  const cats = await service(serviceOrigin, pageOrigin, '/categories');
+  const cats = await service(serviceOrigin, pageOrigin, '/expenses/categories');
   assert.equal(cats.status, 200);
   assert.equal(cats.body.categories.length, 21, 'D7: the service serves 21 categories');
   const sheet = await openSheet(page);
@@ -371,7 +392,7 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
     'the chosen category is still there');
   assert.deepEqual(await readEntries(page), [], 'a refused entry adds no row');
   assert.deepEqual(
-    (await service(serviceOrigin, pageOrigin, `/entries?date=${TODAY}`)).body.entries, [],
+    (await service(serviceOrigin, pageOrigin, `/expenses/entries?date=${TODAY}`)).body.entries, [],
     'and the service stored nothing');
 
   // ================= 3. The right PIN saves through the service =============
@@ -390,7 +411,7 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
   });
 
   // What the service holds is what the page shows — member by member.
-  const day = await service(serviceOrigin, pageOrigin, `/entries?date=${TODAY}`);
+  const day = await service(serviceOrigin, pageOrigin, `/expenses/entries?date=${TODAY}`);
   assert.equal(day.body.entries.length, 1, 'the service stored exactly one entry');
   const entry = day.body.entries[0];
   assert.equal(entry.status, 'Waiting to send',
@@ -409,7 +430,7 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
 
   // The entry was posted as the contract declares, with a minted client entry id,
   // and the PIN is nowhere in the page afterwards.
-  const posts = requested.filter(u => u.startsWith(serviceOrigin) && u.endsWith('/entries'));
+  const posts = requested.filter(u => u.startsWith(serviceOrigin) && u.endsWith('/expenses/entries'));
   assert.ok(posts.length >= 1, 'the save went to the service');
   assert.match(entry.client_entry_id, /^[0-9a-f-]{36}$/,
     'the entry carries the id the page minted');
@@ -500,13 +521,13 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
   assert.deepEqual(await readEntries(down.page), [],
     'nothing the service did not confirm is ever shown as saved');
   assert.deepEqual(
-    down.requested.filter(u => u.startsWith(deadOrigin) && u.includes('/entries')
+    down.requested.filter(u => u.startsWith(deadOrigin) && u.includes('/expenses/entries')
       && !u.includes('?date=')), [],
     'the page issued no POST at all to a service it could not read');
   assert.deepEqual(down.crashes, [], down.crashes.join(' | '));
 
   // ========== 5c. A category list re-read while the sheet is open ===========
-  // Opening the sheet re-reads /categories, so a service that comes back fills
+  // Opening the sheet re-reads /expenses/categories, so a service that comes back fills
   // the select with no reload. That answer can land AFTER the person has chosen
   // (the open-sheet re-read, the 5-minute refresh, a return to the tab). The
   // choice must survive it: "keeps the typed entry in the sheet" covers the
@@ -525,7 +546,7 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
   let release;
   const gate = new Promise(r => { release = r; });
   let heldReads = 0;
-  await held.page.route(third.origin + '/categories', async route => {
+  await held.page.route(third.origin + '/expenses/categories', async route => {
     heldReads++;
     await gate;
     await route.continue();
@@ -535,7 +556,7 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
   await heldSheet.amount.fill('80');
   await heldSheet.category.selectOption({ label: 'Meals' });
   await heldSheet.pin.fill(PIN);
-  const reread = held.page.waitForResponse(r => r.url().startsWith(third.origin + '/categories'));
+  const reread = held.page.waitForResponse(r => r.url().startsWith(third.origin + '/expenses/categories'));
   release();
   await reread;
   await held.page.evaluate(() => new Promise(r => setTimeout(r, 500)));
@@ -583,7 +604,7 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
 
   // The real service still holds exactly the one entry: nothing leaked to it.
   assert.equal(
-    (await service(serviceOrigin, pageOrigin, `/entries?date=${TODAY}`)).body.entries.length,
+    (await service(serviceOrigin, pageOrigin, `/expenses/entries?date=${TODAY}`)).body.entries.length,
     1, 'the failed post created nothing anywhere');
 
   // ================= 6. No service configured ==============================
@@ -624,7 +645,7 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
   // ================= 7. ?api= is loopback-only =============================
   // A crafted https://…/?api=<attacker> link must not redirect a typed PIN, so
   // on any hostname other than 127.0.0.1 / localhost the parameter is ignored.
-  const v6 = await startStaticServer('::1');
+  const v6 = await startStaticServer('::1', { blankServiceMeta: true });
   try {
     const crafted = await openPage(browser, {
       pageOrigin: v6.origin, api: serviceOrigin, feed: feedWithToday(TODAY)
@@ -657,7 +678,7 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
   }
 
   // ================= 8. Nothing reached the service it should not have =====
-  const finalDay = await service(serviceOrigin, pageOrigin, `/entries?date=${TODAY}`);
+  const finalDay = await service(serviceOrigin, pageOrigin, `/expenses/entries?date=${TODAY}`);
   assert.equal(finalDay.body.entries.length, 1,
     'across every path, exactly the one confirmed entry exists');
 });
