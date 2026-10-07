@@ -1,4 +1,4 @@
-// Oracle for "V1 Expenses pane with dummy data".
+// Oracle for "V1 Expenses pane shell".
 //
 // Authority: docs/product/brief.md#Decisions (D2, D7, D9, D11, D12, D15) and
 // design/expenses-tab/ (the approved screens, read as acceptance supports).
@@ -12,8 +12,15 @@
 // (decision 1), the tab's visible word "Expenses", the FAB's aria-label
 // "Add expense" and the field labels "Amount" / "Category" / "Your PIN" and the
 // "Post expense" button from design/expenses-tab/AddSheet.dc.html and Main.dc.html,
-// the chip words of D12, and the 21 category names of D7. No id, class or
-// wording is invented here.
+// and the words D12 retires. No id, class or wording is invented here.
+//
+// Narrowed at V3: the claims this oracle used to make about dummy data — all
+// five chips on one load, the 'Not sent' retry bar, the 21 names in the select,
+// the dummy figures, and a post that becomes 'Waiting to send' with no service —
+// were V1-increment-only and are now owned by tests/expenses-real-data.test.mjs,
+// where the categories, the entries and the save all come from the service. What
+// remains here is the pane's shape, its accent, its scoping and the fact that
+// with no service configured it reads only ike-data's feeds.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -40,8 +47,7 @@ const CATEGORIES_D7 = [
   'Waste Disposal', 'Water'
 ];
 
-// D12: the five chips, and the words the design used that D12 retires.
-const CHIPS = ['Waiting to send', 'Not sent', 'Draft', 'Approved', 'Refused'];
+// D12: the words the design used that D12 retires.
 const RETIRED_WORDS = ['Posted', 'Posts straight to Odoo'];
 
 // Decision 5: the plum accent measured as the dominant one in
@@ -49,23 +55,45 @@ const RETIRED_WORDS = ['Posted', 'Posts straight to Odoo'];
 const PLUM_LIGHT = 'rgb(138, 63, 100)';   // #8a3f64
 const PLUM_DARK = 'rgb(217, 138, 176)';   // #d98ab0
 
-// The requests index.html already makes on load, before this observation: two
-// Google Fonts hosts and ike-data's two feeds. "It makes no network call" is the
-// pane's claim, so it is checked as "no request outside this pre-existing set".
+// The requests index.html makes on load: two Google Fonts hosts and ike-data's
+// three feeds. With no expenses service configured the pane reads ike-data's
+// expenses feed and nothing else, so the claim is checked as "no request outside
+// this set".
 const PRE_EXISTING = [
   'https://fonts.googleapis.com/',
   'https://fonts.gstatic.com/',
   'https://raw.githubusercontent.com/yuki-uthman/ike-data/main/data/sales.json',
-  'https://raw.githubusercontent.com/yuki-uthman/ike-data/main/data/quotations.json'
+  'https://raw.githubusercontent.com/yuki-uthman/ike-data/main/data/quotations.json',
+  'https://raw.githubusercontent.com/yuki-uthman/ike-data/main/data/expenses.json'
 ];
 
-// The two feeds are answered with empty payloads, which index.html already
-// handles through its own .catch/empty-days message. The point of this oracle is
-// the Expenses pane, and a pane that needed live Odoo data to be judged would
-// not be judgeable at all.
+/** The Maldives (UTC+5) date — the day the pane opens on. */
+function maldivesToday() {
+  return new Date(Date.now() + 5 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+// Sales and Quotations are answered with empty payloads, which index.html
+// already handles through its own .catch/empty-days message. The expenses feed
+// carries one day in the shape measured from the live document, so the pane's
+// figures region has something to render.
 const EMPTY_FEEDS = {
   'sales.json': '{"days":[]}',
-  'quotations.json': '{"records":[],"days":[]}'
+  'quotations.json': '{"records":[],"days":[]}',
+  'expenses.json': JSON.stringify({
+    company: 'MRH Investment',
+    currency: 'MVR',
+    days: [{
+      date: maldivesToday(),
+      generatedAt: maldivesToday() + 'T03:01:23Z',
+      confirmed: { total: 208.0, count: 5 },
+      pending: { total: 100030.0, count: 5 },
+      categories: [
+        { name: 'Vehicle Maintenance', count: 1, total: 130.0 },
+        { name: 'Fuel / Petrol', count: 1, total: 50.0 },
+        { name: 'Gate Pass (Boat Delivery)', count: 2, total: 10.0 }
+      ]
+    }]
+  })
 };
 
 async function startServer() {
@@ -118,51 +146,7 @@ async function waitFor(what, fn, timeout = 5000) {
   }
 }
 
-/**
- * Read the pane's entries the way a reader does: each entry is the largest block
- * inside the pane that still carries exactly one of D12's five chips. No class
- * or id of the implementation is assumed.
- */
-function readEntries(page, chips) {
-  return page.evaluate(chipWords => {
-    const pane = document.getElementById('pane-expenses');
-    const norm = s => (s || '').replace(/\s+/g, ' ').trim();
-    // A reader sees separate fields, not one run-together string: textContent
-    // concatenates siblings with no separator ("just now" + "137" -> "now137"),
-    // which would destroy the boundary between a row's fields. Read each text
-    // node separately and join with a space, so field boundaries survive.
-    const fieldText = el => {
-      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-      const parts = [];
-      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-        const t = norm(n.nodeValue);
-        if (t) parts.push(t);
-      }
-      return norm(parts.join(' '));
-    };
-    const chipsIn = el => chipWords.reduce(
-      (n, w) => n + (norm(el.textContent).match(new RegExp(w.replace(/[/()&]/g, '\\$&'), 'g')) || []).length, 0);
-
-    // leaf-most elements whose whole text is one chip word
-    const chipEls = Array.from(pane.querySelectorAll('*')).filter(el =>
-      chipWords.includes(norm(el.textContent)) &&
-      !Array.from(el.children).some(c => chipWords.includes(norm(c.textContent))));
-
-    return chipEls.map(chip => {
-      let row = chip;
-      while (row.parentElement && row.parentElement !== pane && chipsIn(row.parentElement) === 1) {
-        row = row.parentElement;
-      }
-      return {
-        chip: norm(chip.textContent),
-        text: fieldText(row),
-        hasRetryButton: Array.from(row.querySelectorAll('button')).some(b => norm(b.textContent) === 'Retry')
-      };
-    });
-  }, chips);
-}
-
-test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
+test('expenses_pane_shell_is_the_third_tab_on_a_phone', async t => {
   const { server, origin } = await startServer();
   const browser = await chromium.launch();
   t.after(async () => { await browser.close(); server.close(); });
@@ -244,27 +228,14 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
   assert.ok(listed.length >= 1,
     `the category list names D7 categories (found: ${listed.join(', ') || 'none'})`);
 
-  // ---- All five of D12's chips are exhibited on one load, in D12's words ----
-  const before = await readEntries(page, CHIPS);
-  for (const chip of CHIPS) {
-    assert.ok(before.some(e => e.chip === chip), `an entry is chipped '${chip}'`);
-  }
-  const notSent = before.find(e => e.chip === 'Not sent');
-  assert.match(notSent.text, /\d{1,2}:\d{2}/, "'Not sent' shows its next retry time");
-  assert.ok(notSent.hasRetryButton, "'Not sent' offers Retry");
-
+  // ---- D12's retired words are absent ----
   for (const word of RETIRED_WORDS) {
     assert.ok(!paneText.includes(word),
       `D12 retires the design's '${word}', so it must not appear`);
   }
 
-  // ---- The Add sheet: amount (MVR), one of the 21 categories, optional receipt
-  //      from camera or gallery, and the PIN (D2, D7) ----
-  assert.ok(!before.some(e => /\b137(\.00)?\b/.test(e.text)),
-    'the amount this oracle posts is not already in the dummy day');
-  const requestsBeforePost = offLimits.length;
-  const networkBeforePost = await page.evaluate(() => performance.getEntriesByType('resource').length);
-
+  // ---- The Add sheet: amount (MVR), a category, optional receipt from camera
+  //      or gallery, and the PIN (D2) ----
   await pane.locator('[aria-label="Add expense"]').click();
 
   const amount = page.getByLabel('Amount');
@@ -273,11 +244,7 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
   const post = page.getByRole('button', { name: 'Post expense' });
   await waitFor('the Add sheet to open', async () => await post.isVisible());
 
-  assert.deepEqual(
-    (await category.locator('option').evaluateAll(
-      os => os.map(o => o.textContent.replace(/\s+/g, ' ').trim()))).sort(),
-    CATEGORIES_D7.slice().sort(),
-    'the category select carries exactly D7\'s 21 names');
+  assert.ok(await category.count() === 1, 'the sheet offers a category choice');
 
   // The camera claim is the `capture` attribute; no headless run has a camera,
   // so this is where it is readable at all.
@@ -293,31 +260,11 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
     .includes('Posts straight to Odoo'), 'D12 drops the Odoo promise under the button');
 
   await amount.fill('137');
-  await category.selectOption({ label: 'Fuel / Petrol' });
   await pin.fill('1234');
-  await post.click();
 
-  // ---- The entry appears in the list as 'Waiting to send', and the sheet closes ----
-  await waitFor('the sheet to close after posting', async () => !(await post.isVisible()));
-
-  const posted = await waitFor('the posted entry to appear in the day\'s list', async () => {
-    const rows = (await readEntries(page, CHIPS))
-      .filter(e => /\b137(\.00)?\b/.test(e.text));
-    return rows.length ? rows : null;
-  });
-  assert.equal(posted.length, 1, 'the posted entry appears once');
-  assert.equal(posted[0].chip, 'Waiting to send',
-    "the entry added on the sheet appears in the list as 'Waiting to send'");
-  assert.ok(posted[0].text.includes('Fuel / Petrol'),
-    'the entry carries the category that was chosen');
-
-  // ---- It makes no network call ----
-  const networkAfterPost = await page.evaluate(() => performance.getEntriesByType('resource').length);
-  assert.equal(networkAfterPost, networkBeforePost,
-    'opening the sheet and posting issued no request at all');
-  assert.deepEqual(offLimits.slice(requestsBeforePost), [], 'no new endpoint was contacted');
+  // ---- With no service configured it calls only ike-data's expenses feed ----
   assert.deepEqual(offLimits, [],
-    `the page requested nothing beyond its pre-existing four: ${offLimits.join(', ')}`);
+    `the page requested nothing beyond its pre-existing five: ${offLimits.join(', ')}`);
 
   // ---- ids and classes scoped to the pane; Sales and Quotations behave as before ----
   const scoping = await page.evaluate(() => {
@@ -378,10 +325,6 @@ test('expenses_pane_posts_an_entry_as_waiting_to_send', async t => {
     'the dark scheme to wear the dark plum of design/expenses-tab/MainDark.dc.html'
       + ` (${PLUM_DARK})`,
     async () => await darkTab.evaluate(el => getComputedStyle(el).color) === PLUM_DARK);
-  const darkEntries = await readEntries(dark.page, CHIPS);
-  for (const chip of CHIPS) {
-    assert.ok(darkEntries.some(e => e.chip === chip), `dark shows an entry chipped '${chip}'`);
-  }
   const darkText = (await dark.page.locator('#pane-expenses').innerText()).replace(/\s+/g, ' ');
   for (const word of RETIRED_WORDS) {
     assert.ok(!darkText.includes(word), `dark does not reinstate '${word}'`);

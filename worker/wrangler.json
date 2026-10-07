@@ -1,0 +1,23 @@
+{
+  "name": "ike-sales-expenses",
+  "main": "src/index.mjs",
+  "compatibility_date": "2026-07-30",
+  "migrations_dir": "migrations",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ike-sales-expenses",
+      "database_id": "ike-sales-expenses"
+    }
+  ],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "vars": {
+    "ALLOWED_ORIGIN": "https://yuki-uthman.github.io",
+    "ODOO_URL": "https://mrh-investment.odoo.com",
+    "ODOO_DB": "mrh-investment",
+    "ODOO_EMPLOYEE_ID": "1",
+    "ODOO_PAYMENT_METHOD_LINE": "Bank Transfer MVR"
+  }
+}
