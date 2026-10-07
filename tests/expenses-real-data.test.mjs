@@ -155,8 +155,11 @@ async function startStaticServer(host, { blankServiceMeta = false } = {}) {
 async function startService(allowedOrigin) {
   const wrangler = JSON.parse(
     await fs.readFile(path.join(REPO, 'worker/wrangler.json'), 'utf8'));
-  const schema = await fs.readFile(
-    path.join(REPO, 'worker/migrations/0001_init.sql'), 'utf8');
+  // Every migration, in file-name order, as `wrangler d1 migrations apply` runs them.
+  const migrations = path.join(REPO, 'worker/migrations');
+  const schema = (await Promise.all((await fs.readdir(migrations))
+    .filter(f => f.endsWith('.sql')).sort()
+    .map(f => fs.readFile(path.join(migrations, f), 'utf8')))).join('\n');
 
   const mf = new Miniflare({
     scriptPath: path.join(REPO, 'worker/src/index.mjs'),
