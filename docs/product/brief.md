@@ -15,7 +15,7 @@
 ### In scope
 -     Renaming the Worker to 'odoo' and its D1 database to 'ike-odoo' (worker/wrangler.json), and moving the expense routes under /expenses/ in the Worker and in the page; V2-V5 behaviour unchanged.
 -     Read-only checks of the live Odoo schema for the facts the fake Odoo assumed, and corrections where a guess is wrong.
--     Deploy on Cloudflare in the owner's account (workers.dev subdomain 'ike', fallback 'ike-mv'), the service URL in the page, one live entry with the owner, and one PIN change by the owner.
+-     Deploy on Cloudflare in the owner's account (workers.dev subdomain 'ike-mrh'; 'ike' was taken), the service URL in the page, one live entry with the owner, and one PIN change by the owner.
 
 ### Out of scope
 Applicability: applicable
@@ -53,7 +53,7 @@ Reason:     The request is about recording bank-transfer expenses and making the
 -     D14. The owner sets and changes the PIN without a developer: it is a Worker secret changed in the Cloudflare dashboard. A new PIN works at once, the old one stops, saved entries are not affected. Wrong PINs are rate-limited. A leak is handled by the owner changing it.
 -     D15. Everyone sees the day's full entry list (no names exist, so there is no 'own' list).
 -     D16. The Odoo expense date is the Maldives (UTC+5) date on which the entry was saved, not the date it reached Odoo.
--     D17. The Worker is the ike Odoo layer: Worker name 'odoo' on the owner's workers.dev subdomain 'ike' (fallback 'ike-mv'; the final URL is set in the page only at deploy), D1 database 'ike-odoo'. Expense routes move under /expenses/: /expenses/entries, /expenses/categories, /expenses/entries/<id>/retry. OPTIONS stays 204 on any path and the origin check stays on every path. Each later Odoo area gets its own /<area>/ prefix and its own Odoo user and key; no route passes arbitrary Odoo calls through.
+-     D17. The Worker is the ike Odoo layer: Worker name 'odoo' on the owner's workers.dev subdomain 'ike-mrh' ('ike' was taken), URL https://odoo.ike-mrh.workers.dev, D1 database 'ike-odoo'. Expense routes move under /expenses/: /expenses/entries, /expenses/categories, /expenses/entries/<id>/retry. OPTIONS stays 204 on any path and the origin check stays on every path. Each later Odoo area gets its own /<area>/ prefix and its own Odoo user and key; no route passes arbitrary Odoo calls through.
 -     D18. Live-schema corrections from the read-only check of the live Odoo on 2026-10-07: no payment method line is named 'Bank Transfer MVR'; the company-paid bank-transfer line is id 2 'Transfer' (journal 6 Bank, outbound) and id 1 is also 'Transfer' (inbound), so a name search is ambiguous and the Worker sends the configured id ODOO_PAYMENT_METHOD_LINE_ID instead. total_amount and total_amount_currency are both writable and equal for MVR, the company currency; price_unit is readonly and computed, so it is never sent. The other assumed facts (name as the mark, the 21 products, receipt by res_model/res_id, the 7 state values, the 'id in' read shape, employee 1, payment_mode company_account) were confirmed. The page's Retry button (D12) calls the Worker's retry route.
 
 ## Values
