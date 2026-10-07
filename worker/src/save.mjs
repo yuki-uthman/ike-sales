@@ -75,7 +75,7 @@ const SELECT_COLUMNS =
 // What the sync rule needs to know about an entry: never the receipt bytes
 // themselves, only whether there are any.
 const SYNC_COLUMNS =
-  'client_entry_id, amount_laari, category, entry_date, status,'
+  'client_entry_id, amount_laari, category, description, entry_date, status,'
   + ' COALESCE(attempts, 0) AS attempts, odoo_id, next_retry_at,'
   + ' COALESCE(length(receipt), 0) AS receipt_bytes';
 
@@ -90,14 +90,16 @@ export async function saveEntry(db, entry) {
   await db
     .prepare(
       'INSERT INTO entry'
-      + ' (client_entry_id, amount_laari, category, receipt, status, entry_date, saved_at)'
-      + ' VALUES (?, ?, ?, ?, ?, ?, ?)'
+      + ' (client_entry_id, amount_laari, category, description, receipt, status,'
+      + '  entry_date, saved_at)'
+      + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
       + ' ON CONFLICT(client_entry_id) DO NOTHING'
     )
     .bind(
       entry.client_entry_id,
       entry.amount_laari,
       entry.category,
+      entry.description,
       entry.receipt === null ? null : entry.receipt,
       STATUS_WAITING,
       entry.entry_date,

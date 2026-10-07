@@ -602,6 +602,14 @@
         <div class="e-amtline"><span class="e-cur">MVR</span><input id="e-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"><span class="e-amtsize" id="e-amtsize" aria-hidden="true"></span></div>
       </div>
 
+      <!-- D19: typing one is never required, and the Worker is the one judge of
+           the 200-character limit, after its own normalisation — so no maxlength
+           here, which would silently truncate instead. -->
+      <div class="e-field">
+        <label class="e-lbl" for="e-description">Description <span class="e-opt">(optional)</span></label>
+        <input class="e-input" id="e-description" type="text" autocomplete="off" enterkeyhint="next">
+      </div>
+
       <div class="e-field">
         <label class="e-lbl" for="e-category">Category</label>
         <div class="e-selwrap">
@@ -2049,6 +2057,7 @@ window.ikeDay = (function () {
 
   var sheet = document.getElementById('e-sheet');
   var amountEl = document.getElementById('e-amount');
+  var descriptionEl = document.getElementById('e-description');
   var categoryEl = document.getElementById('e-category');
   var pinEl = document.getElementById('e-pin');
   var noteEl = document.getElementById('e-note');
@@ -2386,6 +2395,7 @@ window.ikeDay = (function () {
     // select with no reload; the state decides the note and the button.
     loadCategories();
     amountEl.value = '';
+    descriptionEl.value = '';
     pinEl.value = '';
     cameraEl.value = '';
     galleryEl.value = '';
@@ -2489,6 +2499,9 @@ window.ikeDay = (function () {
     if (error === 'amount_not_positive_mvr') {
       return 'Enter the amount in MVR as a positive number.';
     }
+    if (error === 'description_too_long') {
+      return 'Keep the description to 200 characters or fewer. Nothing was saved.';
+    }
     if (error === 'receipt_too_large') {
       return 'This receipt is too large to send. Post it without the receipt.';
     }
@@ -2507,6 +2520,8 @@ window.ikeDay = (function () {
     var body = {
       pin: pinEl.value,
       category: categoryEl.value,
+      // Posted exactly as typed: the Worker trims, collapses and judges it.
+      description: descriptionEl.value,
       amount: String(amountEl.value).replace(/,/g, '').trim(),
       client_entry_id: pendingId
     };

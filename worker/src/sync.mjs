@@ -32,6 +32,18 @@ export function markFor(clientEntryId) {
   return `[ike:${clientEntryId}]`;
 }
 
+/**
+ * The draft expense's name (D19). A non-empty description sits between the
+ * category and the mark; without one the name is the category and the mark. No
+ * normalising happens here: the description was stored trimmed and collapsed,
+ * and the mark stays the last token in both forms.
+ */
+export function expenseName(category, description, mark) {
+  return typeof description === 'string' && description !== ''
+    ? `${category} - ${description} ${mark}`
+    : `${category} ${mark}`;
+}
+
 /** The type is sniffed from the first bytes, never taken from the client. */
 function sniffMimetype(bytes) {
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
@@ -140,7 +152,7 @@ export async function syncOne(db, odoo, row, now = Date.now()) {
     // readonly and computed in Odoo and is never sent.
     const amountMvr = decimal(formatLaariAsMvr(Number(row.amount_laari)));
     const created = await odoo.call('hr.expense', 'create', [[{
-      name: `${row.category} ${mark}`,
+      name: expenseName(row.category, row.description, mark),
       employee_id: Number(row.employee_id),
       product_id: productId,
       total_amount: amountMvr,

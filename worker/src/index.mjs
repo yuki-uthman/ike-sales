@@ -83,6 +83,20 @@ function decodeReceipt(value) {
   return { bytes, length: bytes.length };
 }
 
+const DESCRIPTION_LIMIT_CHARS = 200; // D19's limit, in Unicode code points
+
+/**
+ * D19's description, normalised: absent, null or '' is "none" and becomes '';
+ * a string is trimmed and every run of whitespace collapsed to one space. null
+ * means "not text at all", which the caller refuses. The limit is applied by the
+ * caller, after this, so text only normalisation brings under 200 is kept.
+ */
+function normaliseDescription(value) {
+  if (value === undefined || value === null) return '';
+  if (typeof value !== 'string') return null;
+  return value.trim().replace(/\s+/g, ' ');
+}
+
 /** Constant-time PIN comparison over UTF-8 bytes; the secret is never stored. */
 function pinMatches(given, secret) {
   if (typeof given !== 'string' || typeof secret !== 'string') return false;
@@ -139,6 +153,19 @@ async function handleSave(request, env) {
     return refuse(422, 'invalid_client_entry_id', env);
   }
 
+  // D19's optional description, judged after the PIN, the category, the amount
+  // and the id, so a wrong PIN still answers wrong_pin first and an over-long
+  // description cannot reveal which other field was also wrong. Absent, null and
+  // whitespace-only all mean "none" and are stored as ''.
+  const description = normaliseDescription(body.description);
+  if (description === null) {
+    return refuse(422, 'description_not_text', env);
+  }
+  if ([...description].length > DESCRIPTION_LIMIT_CHARS) {
+    return refuse(422, 'description_too_long', env,
+      { limit_chars: DESCRIPTION_LIMIT_CHARS });
+  }
+
   const receipt = decodeReceipt(body.receipt);
   if (receipt === null) {
     return refuse(422, 'bad_receipt_base64', env);
@@ -154,6 +181,7 @@ async function handleSave(request, env) {
       client_entry_id: clientEntryId,
       amount_laari: amountLaari,
       category: body.category,
+      description,
       receipt: receipt.bytes,
       entry_date: maldivesDate(now),
       saved_at: new Date(now).toISOString()
