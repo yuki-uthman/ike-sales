@@ -406,7 +406,7 @@
   .pane-expenses .track { height: 6px; border-radius: 3px; background: var(--muted); }
   .pane-expenses .track i { display: block; height: 6px; border-radius: 3px; background: var(--accent); }
   .pane-expenses .catmeta { font-size: 13px; color: var(--ink2); }
-  .pane-expenses .entries { padding: 2px 16px; }
+  .pane-expenses .entries { padding: 2px 16px; overflow: hidden; }
   .pane-expenses .item { display: flex; flex-direction: column; gap: 10px; padding: 13px 0; }
   .pane-expenses .item + .item { border-top: 1px solid var(--rule); }
   .pane-expenses .itemtop { display: flex; align-items: center; gap: 12px; }
@@ -468,6 +468,25 @@
   .e-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft, rgba(138,63,100,0.12)); }
   .e-input[type="password"] { letter-spacing: 0.3em; }
   .e-post { height: 56px; border: 0; border-radius: 16px; background: var(--accent); color: #ffffff; font-family: Manrope, sans-serif; font-weight: 800; font-size: 17px; cursor: pointer; box-shadow: 0 14px 28px -12px rgba(138,63,100,0.7); }
+  /* The post in flight: the button grows to the whole screen while the entry
+     is sent, then lands on the row it became. Purely a layer on top: it never
+     takes a tap, and the save, the sheet and the list behave as without it. */
+  .e-flight { position: fixed; left: 0; top: 0; z-index: 60; box-sizing: border-box; overflow: hidden; pointer-events: none; background: var(--expenses); color: #ffffff; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+  .e-flight[hidden] { display: none; }
+  .e-flbody { display: flex; flex-direction: column; align-items: center; gap: 18px; opacity: 0; transition: opacity 180ms ease; }
+  .e-flight.is-full .e-flbody { opacity: 1; }
+  .e-fldots { display: flex; gap: 10px; }
+  .e-fldots i { width: 12px; height: 12px; border-radius: 50%; background: #ffffff; animation: e-flbounce 900ms ease-in-out infinite; }
+  .e-fldots i:nth-child(2) { animation-delay: 150ms; }
+  .e-fldots i:nth-child(3) { animation-delay: 300ms; }
+  @keyframes e-flbounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.45; } 40% { transform: translateY(-12px); opacity: 1; } }
+  .e-fltitle { font-family: Manrope, sans-serif; font-weight: 800; font-size: 22px; }
+  .e-flwhat { font-size: 15px; font-weight: 600; opacity: 0.85; font-variant-numeric: tabular-nums; }
+  .pane-expenses .item.is-new { animation: e-rownew 1800ms ease-out both; }
+  @keyframes e-rownew {
+    0%, 35% { background: var(--accent-soft); box-shadow: -16px 0 0 var(--accent-soft), 16px 0 0 var(--accent-soft); }
+    100% { background: transparent; box-shadow: -16px 0 0 transparent, 16px 0 0 transparent; }
+  }
   .e-note { text-align: center; font-size: 13px; color: var(--bad, #8c2f2f); min-height: 0; }
   @media (min-width: 900px) {
     .pane-expenses .shell { padding: 30px 40px 110px; gap: 18px; }
@@ -634,6 +653,13 @@
 
       <button class="e-post" type="button" id="e-postBtn">Post expense</button>
       <span class="e-note" id="e-note"></span>
+    </div>
+  </div>
+  <div class="e-flight" aria-hidden="true" hidden>
+    <div class="e-flbody">
+      <div class="e-fldots"><i></i><i></i><i></i></div>
+      <div class="e-fltitle">Sending</div>
+      <div class="e-flwhat"></div>
     </div>
   </div>
 </div>
@@ -2166,7 +2192,11 @@ window.ikeDay = (function () {
           (state.retrying === e.client_entry_id ? ' disabled' : '') + '>Retry</button></div>'
         : '';
       var cls = CHIP_CLASS[e.status] || '';
-      return '<div class="item">' +
+      var fresh = state.flash && state.flash.id === e.client_entry_id
+        ? Date.now() - state.flash.at : -1;
+      var flash = fresh >= 0 && fresh < FLASH_MS
+        ? ' is-new" style="animation-delay:-' + fresh + 'ms' : '';
+      return '<div class="item' + flash + '" data-cid="' + esc(e.client_entry_id) + '">' +
         '<div class="itemtop">' +
           '<div class="what"><span class="cat">' + esc(e.category) + '</span>' +
           '<span class="when">Bank transfer</span></div>' +
@@ -2513,6 +2543,95 @@ window.ikeDay = (function () {
 
   var postBtn = document.getElementById('e-postBtn');
 
+  // ---- The post in flight (a layer only; see .e-flight) ----
+  var flightEl = document.querySelector('.e-flight');
+  var flightWhatEl = flightEl.querySelector('.e-flwhat');
+  var FLIGHT_MIN_MS = 1400;
+  var FLASH_MS = 1800;
+  var flight = null;
+
+  function flightReducedMotion() {
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    catch (e) { return false; }
+  }
+  function boxOf(el, grow) {
+    var r = el.getBoundingClientRect();
+    return { l: r.left - grow, t: r.top, w: r.width + 2 * grow, h: r.height };
+  }
+  function screenBox() {
+    return { l: 0, t: 0, w: window.innerWidth, h: window.innerHeight };
+  }
+  function frameOf(b, radius, opacity) {
+    return { left: b.l + 'px', top: b.t + 'px', width: b.w + 'px', height: b.h + 'px',
+      borderRadius: radius, opacity: opacity };
+  }
+  function flashRow(id) {
+    state.flash = { id: id, at: Date.now() };
+    var row = entriesEl.querySelector('[data-cid="' + cssId(id) + '"]');
+    if (row) {
+      row.classList.add('is-new');
+      row.scrollIntoView({ block: 'center' });
+    }
+  }
+  function cssId(id) {
+    return window.CSS && CSS.escape ? CSS.escape(id) : String(id).replace(/"/g, '\\"');
+  }
+
+  function flightStart() {
+    if (flight) flightDone(flight);
+    if (flightReducedMotion() || !flightEl.animate) return null;
+    var f = { started: Date.now(), from: boxOf(postBtn, 0), anim: null };
+    flightWhatEl.textContent = 'MVR ' + String(amountEl.value).replace(/,/g, '').trim() +
+      ' · ' + categoryEl.value;
+    flightEl.classList.remove('is-full');
+    flightEl.hidden = false;
+    f.anim = flightEl.animate([frameOf(f.from, '16px', 1), frameOf(screenBox(), '0px', 1)],
+      { duration: 420, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'forwards' });
+    f.anim.onfinish = function () { if (flight === f) flightEl.classList.add('is-full'); };
+    flight = f;
+    return f;
+  }
+  function flightLater(f, fn) {
+    setTimeout(function () { if (flight === f) fn(); },
+      Math.max(0, FLIGHT_MIN_MS - (Date.now() - f.started)));
+  }
+  function flightTo(f, box, radius, then) {
+    flightEl.classList.remove('is-full');
+    var old = f.anim;
+    f.anim = flightEl.animate([
+      frameOf(screenBox(), '0px', 1),
+      Object.assign(frameOf(box, radius, 1), { offset: 0.78 }),
+      frameOf(box, radius, 0)
+    ], { duration: 560, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' });
+    if (old) old.cancel();
+    f.anim.onfinish = function () { then(); flightDone(f); };
+  }
+  function flightDone(f) {
+    if (flight !== f) return;
+    flight = null;
+    if (f.anim) f.anim.cancel();
+    flightEl.hidden = true;
+    flightEl.classList.remove('is-full');
+  }
+  // Saved: shrink onto the row the service filed, so the new row is plain.
+  function flightLand(f, id) {
+    if (!f) { flashRow(id); return; }
+    flightLater(f, function () {
+      var row = entriesEl.querySelector('[data-cid="' + cssId(id) + '"]');
+      if (!row) { flightDone(f); flashRow(id); return; }
+      row.scrollIntoView({ block: 'center' });
+      flightTo(f, boxOf(row, 8), '12px', function () {});
+      setTimeout(function () { flashRow(id); }, 400);
+    });
+  }
+  // Not saved: back into the button, where the sheet says why.
+  function flightBack(f) {
+    if (!f) return;
+    flightLater(f, function () {
+      flightTo(f, sheet.hidden ? f.from : boxOf(postBtn, 0), '16px', function () {});
+    });
+  }
+
   function send(base64) {
     // Minted once per typed entry, not once per press: a lost answer cannot
     // become a second entry.
@@ -2559,14 +2678,17 @@ window.ikeDay = (function () {
           state.entriesError = null;
           render();
           loadEntries();
+          flightLand(flight, r.body.entry.client_entry_id);
           return;
         }
+        flightBack(flight);
         noteEl.textContent = refusalMessage(r.status, r.body);
       })
       .catch(function () {
         // An origin refusal and a dead service are the same event to the page.
         state.posting = false;
         postBtn.disabled = false;
+        flightBack(flight);
         noteEl.textContent =
           'Could not reach the expenses service. Your entry is still here — try again.';
       });
@@ -2592,9 +2714,11 @@ window.ikeDay = (function () {
     state.posting = true;
     postBtn.disabled = true;
     noteEl.textContent = 'Sending…';
+    flightStart();
     prepareReceipt(pickedFile(), send, function () {
       state.posting = false;
       postBtn.disabled = false;
+      flightBack(flight);
       noteEl.textContent = 'This receipt could not be prepared. ' +
         'Post it without the receipt or take another photo.';
     });
