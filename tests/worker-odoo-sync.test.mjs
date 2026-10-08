@@ -21,6 +21,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import os from 'node:os';
@@ -256,7 +257,14 @@ async function startFakeOdoo() {
         return respond(res, id);
       }
       if (model === 'ir.attachment') {
-        state.attachments.set(id, { ...vals, id });
+        // saas-19.4 keeps the content of `raw` only (it has no `datas`), and
+        // records its size and sha1 the way Odoo does.
+        const bytes = typeof vals.raw === 'string' ? Buffer.from(vals.raw, 'base64') : Buffer.alloc(0);
+        state.attachments.set(id, {
+          ...vals, id,
+          file_size: bytes.length,
+          checksum: bytes.length ? crypto.createHash('sha1').update(bytes).digest('hex') : false
+        });
         return respond(res, id);
       }
       return fault(res, 2, 'cannot create ' + model);
@@ -367,8 +375,10 @@ async function startWorker(cfg, { persist, odooUrl, apiKey = ODOO_KEY, username 
 }
 
 async function applySchema(db, cfg) {
-  const sql = await fs.readFile(
-    path.join(WORKER, cfg.d1_databases[0].migrations_dir, '0001_init.sql'), 'utf8');
+  // Every migration, in file-name order, as `wrangler d1 migrations apply` runs them.
+  const dir = path.join(WORKER, cfg.d1_databases[0].migrations_dir);
+  const files = (await fs.readdir(dir)).filter(f => f.endsWith('.sql')).sort();
+  const sql = (await Promise.all(files.map(f => fs.readFile(path.join(dir, f), 'utf8')))).join('\n');
   const statements = sql
     .split('\n').map(l => l.replace(/--.*$/, '')).join('\n')
     .split(';').map(s => s.trim()).filter(Boolean);
@@ -492,7 +502,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   assert.equal(attachments[0].res_id, expenseId, 'attached to the expense just created');
   assert.equal(attachments[0].name, `receipt ${MARK_A}`);
   assert.equal(attachments[0].mimetype, 'image/jpeg', 'the type is sniffed from the bytes');
-  assert.ok(Buffer.from(attachments[0].datas, 'base64').equals(receipt),
+  assert.ok(Buffer.from(attachments[0].raw, 'base64').equals(receipt),
     'the attached bytes are the posted receipt, byte for byte');
 
   // ---- the expense is draft, and the Worker called nothing that could move it

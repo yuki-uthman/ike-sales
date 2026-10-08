@@ -32,6 +32,18 @@ export function markFor(clientEntryId) {
   return `[ike:${clientEntryId}]`;
 }
 
+/**
+ * The draft expense's name (D19). A non-empty description sits between the
+ * category and the mark; without one the name is the category and the mark. No
+ * normalising happens here: the description was stored trimmed and collapsed,
+ * and the mark stays the last token in both forms.
+ */
+export function expenseName(category, description, mark) {
+  return typeof description === 'string' && description !== ''
+    ? `${category} - ${description} ${mark}`
+    : `${category} ${mark}`;
+}
+
 /** The type is sniffed from the first bytes, never taken from the client. */
 function sniffMimetype(bytes) {
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
@@ -51,6 +63,25 @@ function toBase64(bytes) {
     binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
   }
   return btoa(binary);
+}
+
+/**
+ * Odoo's own checksum for stored bytes: the sha1 of the content, in hex. It is
+ * what proves an upload arrived, because an upload Odoo silently empties still
+ * answers an id.
+ */
+async function sha1Hex(bytes) {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-1', bytes));
+  return Array.from(digest, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * The id a create() answered. With its vals in the outer list, saas-19.4
+ * answers a list of ids, [id]; a bare id is taken too. Anything else is null.
+ */
+function createdId(value) {
+  const id = Array.isArray(value) && value.length === 1 ? value[0] : value;
+  return Number.isInteger(id) && id > 0 ? id : null;
 }
 
 function firstId(value) {
@@ -121,7 +152,7 @@ export async function syncOne(db, odoo, row, now = Date.now()) {
     // readonly and computed in Odoo and is never sent.
     const amountMvr = decimal(formatLaariAsMvr(Number(row.amount_laari)));
     const created = await odoo.call('hr.expense', 'create', [[{
-      name: `${row.category} ${mark}`,
+      name: expenseName(row.category, row.description, mark),
       employee_id: Number(row.employee_id),
       product_id: productId,
       total_amount: amountMvr,
@@ -131,30 +162,48 @@ export async function syncOne(db, odoo, row, now = Date.now()) {
       payment_method_line_id: lineId
     }]]);
     if (!created.ok) return fail(created.code);
-    if (!Number.isInteger(created.value) || created.value <= 0) {
-      return fail('odoo_bad_answer');
-    }
-    expenseId = created.value;
+    expenseId = createdId(created.value);
+    if (expenseId === null) return fail('odoo_bad_answer');
   }
 
   // (5) The receipt attach is idempotent the same way: an adopted expense is
-  // never given a second copy of the same receipt.
+  // never given a second copy of the same receipt. Only an attachment whose
+  // checksum is this receipt's counts as it, so an empty copy left by an
+  // earlier attempt can never pass for the receipt.
   if (Number(row.receipt_bytes || 0) > 0) {
-    const existing = await odoo.call('ir.attachment', 'search_read',
-      [[['res_model', '=', 'hr.expense'], ['res_id', '=', expenseId]]],
-      { fields: ['id'], limit: 1 });
-    if (!existing.ok) return fail(existing.code);
-    if (firstId(existing.value) === null) {
-      const bytes = await receiptBytes(db, clientEntryId);
-      if (bytes && bytes.length > 0) {
+    const bytes = await receiptBytes(db, clientEntryId);
+    if (bytes && bytes.length > 0) {
+      const checksum = await sha1Hex(bytes);
+      const existing = await odoo.call('ir.attachment', 'search_read',
+        [[['res_model', '=', 'hr.expense'], ['res_id', '=', expenseId]]],
+        { fields: ['id', 'checksum'] });
+      if (!existing.ok) return fail(existing.code);
+      if (!Array.isArray(existing.value)) return fail('odoo_bad_answer');
+      if (!existing.value.some(a => a.checksum === checksum)) {
+        // saas-19.4 has no `datas`: create() drops that key without an error and
+        // stores 0 bytes. The content field is `raw`, as a base64 string — an
+        // XML-RPC <base64> is refused there.
         const attached = await odoo.call('ir.attachment', 'create', [[{
           name: `receipt ${mark}`,
           res_model: 'hr.expense',
           res_id: expenseId,
           mimetype: sniffMimetype(bytes),
-          datas: toBase64(bytes)
+          raw: toBase64(bytes)
         }]]);
         if (!attached.ok) return fail(attached.code);
+        const attachmentId = createdId(attached.value);
+        if (attachmentId === null) return fail('odoo_bad_answer');
+
+        // An id proves nothing: read the stored bytes back before calling the
+        // receipt sent.
+        const stored = await odoo.call('ir.attachment', 'search_read',
+          [[['id', '=', attachmentId]]],
+          { fields: ['file_size', 'checksum'], limit: 1 });
+        if (!stored.ok) return fail(stored.code);
+        const kept = Array.isArray(stored.value) ? stored.value[0] : null;
+        if (!kept || Number(kept.file_size) === 0 || kept.checksum !== checksum) {
+          return fail('odoo_receipt_not_stored');
+        }
       }
     }
   }

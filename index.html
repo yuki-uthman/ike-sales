@@ -381,9 +381,6 @@
      design/expenses-tab/. V1 shows dummy data and makes no call of its own. */
   .pane-expenses .scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; }
   .pane-expenses .shell { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 96px; width: 100%; max-width: 1160px; margin: 0 auto; }
-  .pane-expenses .brand { display: flex; align-items: baseline; gap: 10px; }
-  .pane-expenses .brandname { font-family: Manrope, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
-  .pane-expenses .org { font-family: Manrope, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink3); }
   .pane-expenses .pills { display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 4px 0; }
   .pane-expenses .pills::-webkit-scrollbar { display: none; }
   .pane-expenses .pill { flex: 0 0 auto; height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--surface); color: var(--ink2); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 1px 2px rgba(13,31,28,0.06); transition: background 0.2s, color 0.2s; }
@@ -437,7 +434,10 @@
   /* ---- Add-expense sheet. It lives outside the pager so a fixed overlay cannot
      be clipped or dragged by the pager's horizontal scroll; every id and class
      it introduces still carries the e- prefix. */
-  .e-overlay { position: fixed; inset: 0; z-index: 40; background: rgba(13,31,28,0.5); display: flex; align-items: flex-end; justify-content: center; --accent: var(--expenses); }
+  .e-overlay { position: fixed; inset: 0; z-index: 40; background: rgba(13,31,28,0.5); display: flex; align-items: flex-end; justify-content: center; --accent: var(--expenses); --e-fieldline: rgba(13,31,28,0.18); }
+  @media (prefers-color-scheme: dark) {
+    .e-overlay { --e-fieldline: rgba(255,255,255,0.24); }
+  }
   .e-sheet { width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; box-sizing: border-box; background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -20px 50px -20px rgba(0,0,0,0.45); padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16px; }
   .e-grab { align-self: center; width: 40px; height: 5px; border-radius: 3px; background: var(--grid); }
   .e-sheethead { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -449,19 +449,24 @@
   .e-amtlbl { font-family: Manrope, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); }
   .e-amtline { display: flex; align-items: baseline; gap: 8px; font-family: Manrope, sans-serif; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
   .e-amtline .e-cur { font-size: 16px; font-weight: 700; color: var(--ink2); letter-spacing: 0; }
-  .e-amtline input { width: 190px; border: 0; background: none; padding: 0; font: inherit; color: inherit; outline: none; }
+  .e-amtline input { width: 4ch; min-width: 0; max-width: 100%; border: 0; background: none; padding: 0; font: inherit; color: inherit; outline: none; }
+  .e-amtline { max-width: 100%; position: relative; }
+  /* An invisible twin of MVR on the right balances the real one on the left,
+     so the digits themselves sit centred under AMOUNT. */
+  .e-amtline::after { content: 'MVR'; font-size: 16px; font-weight: 700; letter-spacing: 0; visibility: hidden; }
+  .e-amtsize { position: absolute; visibility: hidden; white-space: pre; pointer-events: none; }
   .e-field { display: flex; flex-direction: column; gap: 6px; }
   .e-lbl { font-weight: 700; font-size: 13px; color: var(--ink2); }
   .e-lbl .e-opt { font-weight: 400; }
   .e-selwrap { position: relative; }
-  .e-selwrap select { appearance: none; -webkit-appearance: none; width: 100%; height: 52px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 0 40px 0 14px; font: inherit; font-size: 16px; font-weight: 600; }
+  .e-selwrap select { appearance: none; -webkit-appearance: none; width: 100%; height: 52px; box-sizing: border-box; border: 1px solid var(--e-fieldline); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 0 40px 0 14px; font: inherit; font-size: 16px; font-weight: 600; }
   .e-selwrap .e-chev { position: absolute; right: 14px; top: 17px; pointer-events: none; color: var(--ink2); }
   .e-receipt { display: flex; gap: 10px; }
   .e-pick { position: relative; flex: 1; height: 52px; border: 1.5px dashed var(--accent); border-radius: 12px; background: var(--surface); color: var(--accent); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
   .e-pick input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-  .e-pinrow { display: flex; align-items: center; gap: 12px; }
-  .e-pinrow .e-lbl { flex: 0 0 auto; }
-  .e-pinrow input { flex: 1; height: 52px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 0 14px; font: inherit; font-size: 20px; letter-spacing: 0.4em; text-align: center; }
+  .e-input { width: 100%; height: 52px; box-sizing: border-box; border: 1px solid var(--e-fieldline); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 0 14px; font: inherit; font-size: 16px; font-weight: 600; }
+  .e-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft, rgba(138,63,100,0.12)); }
+  .e-input[type="password"] { letter-spacing: 0.3em; }
   .e-post { height: 56px; border: 0; border-radius: 16px; background: var(--accent); color: #ffffff; font-family: Manrope, sans-serif; font-weight: 800; font-size: 17px; cursor: pointer; box-shadow: 0 14px 28px -12px rgba(138,63,100,0.7); }
   .e-note { text-align: center; font-size: 13px; color: var(--bad, #8c2f2f); min-height: 0; }
   @media (min-width: 900px) {
@@ -534,11 +539,6 @@
     <section class="pane pane-expenses" id="pane-expenses" role="tabpanel" aria-labelledby="tab-expenses">
       <div class="scroll" id="e-scroll">
         <div class="shell">
-          <div class="brand">
-            <span class="brandname">Ike Expenses</span>
-            <span class="org">MRH Investment</span>
-          </div>
-
           <div class="pills" id="e-pills"></div>
 
           <div class="card hero">
@@ -599,7 +599,15 @@
 
       <div class="e-amtbox">
         <label class="e-amtlbl" for="e-amount">Amount</label>
-        <div class="e-amtline"><span class="e-cur">MVR</span><input id="e-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
+        <div class="e-amtline"><span class="e-cur">MVR</span><input id="e-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"><span class="e-amtsize" id="e-amtsize" aria-hidden="true"></span></div>
+      </div>
+
+      <!-- D19: typing one is never required, and the Worker is the one judge of
+           the 200-character limit, after its own normalisation — so no maxlength
+           here, which would silently truncate instead. -->
+      <div class="e-field">
+        <label class="e-lbl" for="e-description">Description <span class="e-opt">(optional)</span></label>
+        <input class="e-input" id="e-description" type="text" autocomplete="off" enterkeyhint="next">
       </div>
 
       <div class="e-field">
@@ -619,9 +627,9 @@
         <span class="e-lbl e-opt" id="e-receiptName"></span>
       </div>
 
-      <div class="e-pinrow">
+      <div class="e-field">
         <label class="e-lbl" for="e-pin">Your PIN</label>
-        <input id="e-pin" type="password" inputmode="numeric" autocomplete="off">
+        <input class="e-input" id="e-pin" type="password" inputmode="numeric" autocomplete="off">
       </div>
 
       <button class="e-post" type="button" id="e-postBtn">Post expense</button>
@@ -2049,6 +2057,7 @@ window.ikeDay = (function () {
 
   var sheet = document.getElementById('e-sheet');
   var amountEl = document.getElementById('e-amount');
+  var descriptionEl = document.getElementById('e-description');
   var categoryEl = document.getElementById('e-category');
   var pinEl = document.getElementById('e-pin');
   var noteEl = document.getElementById('e-note');
@@ -2056,9 +2065,11 @@ window.ikeDay = (function () {
   var cameraEl = document.getElementById('e-camera');
   var galleryEl = document.getElementById('e-gallery');
 
+  // Oldest left, today right, as on Sales and Quotations. state.dayList stays
+  // newest first; only the row is drawn the other way round.
   function buildPills() {
     pillsEl.innerHTML = '';
-    state.dayList.forEach(function (date) {
+    state.dayList.slice().reverse().forEach(function (date) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'pill';
@@ -2071,6 +2082,17 @@ window.ikeDay = (function () {
       });
       pillsEl.appendChild(b);
     });
+    requestAnimationFrame(showSelectedPill);
+  }
+
+  // Keeps the selected day in view: on a fresh row that is the right end.
+  function showSelectedPill() {
+    var active = pillsEl.querySelector('[aria-pressed="true"]');
+    if (!active) return;
+    try {
+      pillsEl.scrollTo({ left: Math.max(0, active.offsetLeft - pillsEl.offsetLeft
+        - pillsEl.clientWidth / 2 + active.offsetWidth / 2) });
+    } catch (e) {}
   }
 
   // The two regions fail independently and neither replaces the pane: the FAB
@@ -2177,6 +2199,7 @@ window.ikeDay = (function () {
       b.setAttribute('aria-pressed',
         b.getAttribute('data-day') === state.day ? 'true' : 'false');
     });
+    showSelectedPill();
     renderFigures();
     renderEntries();
   }
@@ -2372,13 +2395,25 @@ window.ikeDay = (function () {
     // select with no reload; the state decides the note and the button.
     loadCategories();
     amountEl.value = '';
+    descriptionEl.value = '';
     pinEl.value = '';
     cameraEl.value = '';
     galleryEl.value = '';
     categoryEl.selectedIndex = 0;
     sheet.hidden = false;
+    sizeAmount();
     amountEl.focus();
   }
+
+  // The amount input is exactly as wide as the text it shows (or its
+  // placeholder), so MVR and the digits centre together under AMOUNT. It is
+  // measured from a hidden twin in the same font, which needs the sheet shown.
+  var amtSizeEl = document.getElementById('e-amtsize');
+  function sizeAmount() {
+    amtSizeEl.textContent = amountEl.value || amountEl.placeholder;
+    amountEl.style.width = Math.ceil(amtSizeEl.getBoundingClientRect().width + 2) + 'px';
+  }
+  amountEl.addEventListener('input', sizeAmount);
   function closeSheet() {
     pendingId = null;
     pinEl.value = '';
@@ -2464,6 +2499,9 @@ window.ikeDay = (function () {
     if (error === 'amount_not_positive_mvr') {
       return 'Enter the amount in MVR as a positive number.';
     }
+    if (error === 'description_too_long') {
+      return 'Keep the description to 200 characters or fewer. Nothing was saved.';
+    }
     if (error === 'receipt_too_large') {
       return 'This receipt is too large to send. Post it without the receipt.';
     }
@@ -2482,6 +2520,8 @@ window.ikeDay = (function () {
     var body = {
       pin: pinEl.value,
       category: categoryEl.value,
+      // Posted exactly as typed: the Worker trims, collapses and judges it.
+      description: descriptionEl.value,
       amount: String(amountEl.value).replace(/,/g, '').trim(),
       client_entry_id: pendingId
     };

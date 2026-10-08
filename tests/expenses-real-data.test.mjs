@@ -155,8 +155,11 @@ async function startStaticServer(host, { blankServiceMeta = false } = {}) {
 async function startService(allowedOrigin) {
   const wrangler = JSON.parse(
     await fs.readFile(path.join(REPO, 'worker/wrangler.json'), 'utf8'));
-  const schema = await fs.readFile(
-    path.join(REPO, 'worker/migrations/0001_init.sql'), 'utf8');
+  // Every migration, in file-name order, as `wrangler d1 migrations apply` runs them.
+  const migrations = path.join(REPO, 'worker/migrations');
+  const schema = (await Promise.all((await fs.readdir(migrations))
+    .filter(f => f.endsWith('.sql')).sort()
+    .map(f => fs.readFile(path.join(migrations, f), 'utf8')))).join('\n');
 
   const mf = new Miniflare({
     scriptPath: path.join(REPO, 'worker/src/index.mjs'),
@@ -353,12 +356,13 @@ test('pane_saves_through_the_service_and_shows_only_confirmed_entries', async t 
       `the category row for ${c.name} carries its feed total`);
   }
 
-  // The day pills are the feed's days, newest first, each addressable.
+  // The day pills are the feed's days, each addressable, oldest left and today
+  // at the right end, as on Sales and Quotations.
   assert.deepEqual(
     await page.locator('#e-pills [data-day]').evaluateAll(
       els => els.map(e => e.getAttribute('data-day'))),
-    [TODAY, DAY_FULL.date, DAY_EMPTY.date],
-    'every feed day is a selectable pill, newest first');
+    [DAY_EMPTY.date, DAY_FULL.date, TODAY],
+    'every feed day is a selectable pill, oldest left, today rightmost');
 
   // The entries card is the service's rows and nothing else: the store is empty.
   const emptyDay = await service(serviceOrigin, pageOrigin, `/expenses/entries?date=${TODAY}`);

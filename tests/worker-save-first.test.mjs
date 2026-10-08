@@ -130,8 +130,10 @@ async function startWorker(cfg, { pin, persist }) {
  * this way, nothing below can run — which is itself the point.
  */
 async function applySchema(db, cfg) {
-  const file = path.join(WORKER, cfg.d1_databases[0].migrations_dir, '0001_init.sql');
-  const sql = await fs.readFile(file, 'utf8');
+  // Every migration, in file-name order, as `wrangler d1 migrations apply` runs them.
+  const dir = path.join(WORKER, cfg.d1_databases[0].migrations_dir);
+  const files = (await fs.readdir(dir)).filter(f => f.endsWith('.sql')).sort();
+  const sql = (await Promise.all(files.map(f => fs.readFile(path.join(dir, f), 'utf8')))).join('\n');
   const statements = sql
     .split('\n').map(line => line.replace(/--.*$/, '')).join('\n')
     .split(';').map(s => s.trim()).filter(Boolean);
