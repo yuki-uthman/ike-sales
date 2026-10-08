@@ -170,7 +170,7 @@ functional
 - syncOne (worker/src/sync.mjs:113) sends name: expenseName(row.category, row.description) and adds description: mark to the hr.expense create vals at worker/src/sync.mjs:154. Odoo's hr.expense field `description` is 'Internal Notes', stored, writable, type text on saas-19.4 (fields_get read 2026-10-08).
 - The mark search at worker/src/sync.mjs:129 becomes [[['description', 'like', mark]]]; its comment says the mark lives in Internal Notes so the name stays the staff's words.
 - markFor, the receipt attachment name `receipt ${mark}` and worker/src/readback.mjs are unchanged.
-- The oracle step owns the earlier oracles that pin the old shape and migrates them in place, since this Request replaces the behaviour they assert: tests/worker-odoo-sync.test.mjs (name 'Salary [ike:ce-a]' at :472, search domain on name at :494, lost-answer filters by name at :596 and :605), tests/expenses-description-odoo.test.mjs (the '<category> - <description> <mark>' names at :414-435 and :517, the name-based search domain at :450, the declared create members at :464, 'description' absent from vals at :477, the name filters at :515 and :524), and tests/worker-status-readback.test.mjs:590 (counts expenses by mark in name). Each keeps its intent with the mark read from the expense's description field instead of its name.
+- The oracle step owns the earlier oracles that pin the old shape and migrates them in place, since this Request replaces the behaviour they assert: tests/worker-odoo-sync.test.mjs (name 'Salary [ike:ce-a]' at :472, search domain on name at :494, lost-answer filters by name at :596 and :605), tests/expenses-description-odoo.test.mjs (the '<category> - <description> <mark>' names at :414-435 and :517, the name-based search domain at :450, the declared create members at :464, 'description' absent from vals at :477, the name filters at :515 and :524), tests/worker-status-readback.test.mjs:590 (counts expenses by mark in name), and tests/odoo-live-schema-retry.test.mjs:844 (selects the entry's create by the id in its name). Each keeps its intent with the mark read from the expense's description field instead of its name. These four migrated files are declared acceptance supports of this value, so the candidate carries their migrated bytes.
 
 ### Reuse analysis
 | Symbol | Locator | Decision | Reason |
@@ -200,6 +200,10 @@ Not applicable: The change is two expressions and one domain in syncOne plus the
 - `worker/wrangler.json`
 - `worker/migrations/0001_init.sql`
 - `worker/migrations/0002_description.sql`
+- `tests/worker-odoo-sync.test.mjs`
+- `tests/expenses-description-odoo.test.mjs`
+- `tests/worker-status-readback.test.mjs`
+- `tests/odoo-live-schema-retry.test.mjs`
 
 ### Public oracle
 Observation: The draft hr.expense is named exactly what staff typed, or the category when they typed nothing; its Internal Notes hold the mark alone; the duplicate search reads Internal Notes, so a lost create answer or a second cron run never makes a second expense.
@@ -214,4 +218,4 @@ Falsifier: A name holding the category with a description, a separator, or the m
 Oracle target locator: `tests/expenses-clean-name-odoo.test.mjs::the_odoo_description_is_only_what_staff_typed`
 
 Verification command: `npm install --no-audit --no-fund`
-Verification command: `node --test tests/expenses-clean-name-odoo.test.mjs tests/worker-odoo-sync.test.mjs tests/expenses-description-odoo.test.mjs tests/worker-status-readback.test.mjs`
+Verification command: `node --test tests/expenses-clean-name-odoo.test.mjs tests/worker-odoo-sync.test.mjs tests/expenses-description-odoo.test.mjs tests/worker-status-readback.test.mjs tests/odoo-live-schema-retry.test.mjs`
