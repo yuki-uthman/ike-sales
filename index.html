@@ -2717,7 +2717,7 @@ window.ikeDay = (function () {
     }
     state.posting = true;
     postBtn.disabled = true;
-    noteEl.textContent = 'Sending…';
+    noteEl.textContent = '';
     flightStart();
     prepareReceipt(pickedFile(), send, function () {
       state.posting = false;
