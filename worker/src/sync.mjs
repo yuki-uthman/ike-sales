@@ -33,15 +33,15 @@ export function markFor(clientEntryId) {
 }
 
 /**
- * The draft expense's name (D19). A non-empty description sits between the
- * category and the mark; without one the name is the category and the mark. No
- * normalising happens here: the description was stored trimmed and collapsed,
- * and the mark stays the last token in both forms.
+ * The draft expense's name (D21). It is exactly the staff's words: the stored
+ * description when there is one, and the category when there is none. No mark,
+ * no separator — the mark lives in Internal Notes. No normalising happens here:
+ * the description was stored trimmed and collapsed.
  */
-export function expenseName(category, description, mark) {
+export function expenseName(category, description) {
   return typeof description === 'string' && description !== ''
-    ? `${category} - ${description} ${mark}`
-    : `${category} ${mark}`;
+    ? description
+    : category;
 }
 
 /** The type is sniffed from the first bytes, never taken from the client. */
@@ -124,10 +124,11 @@ export async function syncOne(db, odoo, row, now = Date.now()) {
     return { ok: false, code };
   };
 
-  // (1) Has this entry already become an expense? Substring, so a human editing
-  // the description around the mark cannot cause a duplicate.
+  // (1) Has this entry already become an expense? The mark lives in Internal
+  // Notes (field description) so the name stays the staff's words; substring, so
+  // a human editing the notes around the mark cannot cause a duplicate.
   const found = await odoo.call('hr.expense', 'search_read',
-    [[['name', 'like', mark]]], { fields: ['id', 'state'], limit: 2 });
+    [[['description', 'like', mark]]], { fields: ['id', 'state'], limit: 2 });
   if (!found.ok) return fail(found.code);
   let expenseId = firstId(found.value);
 
@@ -152,7 +153,8 @@ export async function syncOne(db, odoo, row, now = Date.now()) {
     // readonly and computed in Odoo and is never sent.
     const amountMvr = decimal(formatLaariAsMvr(Number(row.amount_laari)));
     const created = await odoo.call('hr.expense', 'create', [[{
-      name: expenseName(row.category, row.description, mark),
+      name: expenseName(row.category, row.description),
+      description: mark,
       employee_id: Number(row.employee_id),
       product_id: productId,
       total_amount: amountMvr,

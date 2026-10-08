@@ -145,3 +145,77 @@ Oracle target locator: `tests/expenses-description-odoo.test.mjs::the_draft_expe
 
 Verification command: `npm install --no-audit --no-fund`
 Verification command: `node --test tests/expenses-description-odoo.test.mjs`
+## V1 Clean description in Odoo
+
+### Purpose
+Show the accountant only what staff typed in Odoo's Description column, and keep duplicate protection by moving the entry's mark into the expense's Internal Notes.
+
+### Constraints
+- D21: hr.expense name is exactly the stored description when it is non-empty, and exactly the category when it is ''. No mark, no separator.
+- D21: hr.expense description (Odoo 'Internal Notes', stored text) is exactly '[ike:<client_entry_id>]'.
+- D8 + D21: the search before every create is [['description','like','[ike:<client_entry_id>]']] with fields ['id','state'] and limit 2; a found expense is adopted, never re-created.
+- D5/D18: every other create member is unchanged; the Worker still calls only authenticate, search_read and create.
+- The receipt attachment name stays 'receipt [ike:<client_entry_id>]'. The status read-back (by stored Odoo id) is unchanged.
+
+### Targets
+| Path | Decision | Reason |
+|---|---|---|
+| `worker/src/sync.mjs` | EXTEND | syncOne builds the hr.expense create vals and runs the mark search; expenseName decides the name. |
+
+### Paradigm
+functional
+
+### Decisions
+- expenseName(category, description) in worker/src/sync.mjs:41 drops its mark parameter and returns description when it is a non-empty string, otherwise category. Its doc comment cites D21.
+- syncOne (worker/src/sync.mjs:113) sends name: expenseName(row.category, row.description) and adds description: mark to the hr.expense create vals at worker/src/sync.mjs:154. Odoo's hr.expense field `description` is 'Internal Notes', stored, writable, type text on saas-19.4 (fields_get read 2026-10-08).
+- The mark search at worker/src/sync.mjs:129 becomes [[['description', 'like', mark]]]; its comment says the mark lives in Internal Notes so the name stays the staff's words.
+- markFor, the receipt attachment name `receipt ${mark}` and worker/src/readback.mjs are unchanged.
+- The oracle step owns the earlier oracles that pin the old shape and migrates them in place, since this Request replaces the behaviour they assert: tests/worker-odoo-sync.test.mjs (name 'Salary [ike:ce-a]' at :472, search domain on name at :494, lost-answer filters by name at :596 and :605), tests/expenses-description-odoo.test.mjs (the '<category> - <description> <mark>' names at :414-435 and :517, the name-based search domain at :450, the declared create members at :464, 'description' absent from vals at :477, the name filters at :515 and :524), tests/worker-status-readback.test.mjs:590 (counts expenses by mark in name), and tests/odoo-live-schema-retry.test.mjs:844 (selects the entry's create by the id in its name). Each keeps its intent with the mark read from the expense's description field instead of its name. These four migrated files are declared acceptance supports of this value, so the candidate carries their migrated bytes.
+
+### Reuse analysis
+| Symbol | Locator | Decision | Reason |
+|---|---|---|---|
+| markFor | `worker/src/sync.mjs:31` | REUSE | The mark is still derived from client_entry_id, never stored in D1. |
+| expenseName | `worker/src/sync.mjs:41` | EXTEND | The one place the name is decided; its rule changes to D21. |
+| syncOne | `worker/src/sync.mjs:113` | EXTEND | The one place an hr.expense is searched for and created. |
+
+### Prefactoring
+Not applicable: The change is two expressions and one domain in syncOne plus the expenseName body; nothing needs moving first.
+
+### Agreement analysis
+| Contract | Role | Locator | Decision | Reason |
+|---|---|---|---|---|
+| hr.expense create vals sent to Odoo | producer | `worker/src/sync.mjs:154` | MIGRATED | name loses the category prefix and the mark; description (Internal Notes) gains the mark; every other member is unchanged. |
+| The mark search domain | consumer | `worker/src/sync.mjs:129` | MIGRATED | Searches description instead of name, where the producer now puts the mark. |
+| Expenses created before this change (mark in name, already holding a stored Odoo id) | consumer | `worker/src/readback.mjs:74` | UNCHANGED_COMPATIBLE | Read-back is by stored id, never by mark, so old names need no change. |
+
+### Boundaries
+- Driving port: The Cloudflare cron (scheduled handler) and the Retry route, both through syncOne
+- Driven port: Odoo XML-RPC execute_kw (hr.expense search_read and create)
+- Driven port: Cloudflare D1 binding DB, table entry
+- Dependency direction: index.mjs -> sync.mjs -> {save.mjs, odoo.mjs}; expenseName is pure and depends on nothing.
+- Failure: Condition: Odoo commits the create but its answer is lost | Outcome: Retry | Observation: The entry stays 'Not sent'; the retry finds the expense by the mark in its Internal Notes and adopts it, so there is still one expense.
+
+### Acceptance supports
+- `worker/wrangler.json`
+- `worker/migrations/0001_init.sql`
+- `worker/migrations/0002_description.sql`
+- `tests/worker-odoo-sync.test.mjs`
+- `tests/expenses-description-odoo.test.mjs`
+- `tests/worker-status-readback.test.mjs`
+- `tests/odoo-live-schema-retry.test.mjs`
+
+### Public oracle
+Observation: The draft hr.expense is named exactly what staff typed, or the category when they typed nothing; its Internal Notes hold the mark alone; the duplicate search reads Internal Notes, so a lost create answer or a second cron run never makes a second expense.
+
+Stimulus: Post through HTTP to a real workerd Worker with every migration applied: 'Water' with description '  Nagaraj  ', 'Meals' with none, 'Fuel / Petrol' with description 'Boat trip to Male' and a JPEG receipt; trigger the cron port with ODOO_URL bound to a saas-19.4 fake Odoo; then set the fake to commit a create and drop its answer for a fourth entry, retry it, and trigger the cron again.
+
+Expected: Names 'Nagaraj', 'Meals', 'Boat trip to Male'; each expense's description is exactly '[ike:<its id>]'; no name contains '[ike:'; every hr.expense search before a create is [['description','like','[ike:<id>]']]; the lost-answer entry ends with exactly one expense and is adopted; the second cron run creates nothing; the receipt attachment is named 'receipt [ike:<id>]' with matching size and checksum; methods called are only authenticate, search_read, create.
+
+Falsifier: A name holding the category with a description, a separator, or the mark; Internal Notes empty or holding more than the mark; a search on name; a second expense for one entry; any other create member changing.
+
+### Oracle and verification
+Oracle target locator: `tests/expenses-clean-name-odoo.test.mjs::the_odoo_description_is_only_what_staff_typed`
+
+Verification command: `npm install --no-audit --no-fund`
+Verification command: `node --test tests/expenses-clean-name-odoo.test.mjs tests/worker-odoo-sync.test.mjs tests/expenses-description-odoo.test.mjs tests/worker-status-readback.test.mjs tests/odoo-live-schema-retry.test.mjs`

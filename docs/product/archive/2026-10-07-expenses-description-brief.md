@@ -1,28 +1,32 @@
 # Product brief
 
 ## Request
-    Follow-up: in Odoo the draft expense's Description shows only what the staff typed (or the category when they typed nothing), not '<category> - <description> [ike:<id>]'. Context: MRH Investment (Maldives, MVR). The description Request is live (Worker 'odoo', saas-19.4); its first live entry was named 'Water - Nagaraj [ike:056143fe-...]' and the owner wants it to read 'Nagaraj'. The mark that stops duplicate expenses moves to the expense's Internal Notes. Jobs: Accountant - read a clean description in the Odoo expense list. Owner - never get a duplicate expense.
+    Follow-up: staff can add an optional short description to a bank-transfer expense on the Add sheet, typed right after the amount, and the accountant sees it on the draft expense in Odoo. Context: MRH Investment (Maldives, MVR). The Expenses tab is live through the ike Odoo layer (Worker 'odoo', D1 'ike-odoo', saas-19.4). A category alone often does not say what the money was for (which boat trip, which repair), so the accountant still asks in WhatsApp. Jobs: Staff - say in a few words what this transfer was for, without slowing down. Accountant - read what an expense was for in Odoo without asking.
 
 ## Outcomes
--     The accountant sees in Odoo's Description column only what staff typed, or the category when nothing was typed.
--     A sync that is retried or run twice still never creates a second Odoo expense for one entry.
+-     Staff can type an optional description right after the amount on the Add sheet; an expense posted without one still takes under 30 seconds from opening the tab to seeing it saved.
+-     The accountant reads the description on the draft hr.expense in Odoo, next to its category, without asking in WhatsApp.
 
 ## Scope
 
 ### In scope
--     The hr.expense name the Worker sends.
--     Sending the mark in the hr.expense Internal Notes (field description) and searching for it there before every create.
+-     A 'Description (optional)' field on the Add sheet right after the amount, posted with the entry.
+-     Storing the description with the entry in the Worker's D1 (a new column through a new migration), with its 200-character limit.
+-     Sending the description in the draft hr.expense's name, before the mark.
 
 ### Out of scope
 Applicability: applicable
-Reason:     The owner asked only for a clean Description; the rest is unchanged or a later decision.
--     Renaming expenses already in Odoo.
--     The receipt attachment's name.
--     The page, the D1 schema and the save route.
--     Deploying, or any call to the real Odoo; the owner deploys after review.
+Reason:     The request is one optional field from the Add sheet to Odoo; these items are separate jobs or later decisions.
+-     Showing the description in the day's entry list or the categories card.
+-     Editing a description after posting, from the page or the Worker.
+-     Any other new field sent to Odoo (who paid, paid to, notes).
+-     Making the description required.
+-     Back-filling a description on entries already in Odoo.
+-     Deploying, applying the D1 migration on Cloudflare, or any call to the real Odoo; the owner does those after review.
 
 ## Observations
--     V1 Clean description in Odoo: the draft hr.expense the Worker creates is named exactly the description the staff typed (as stored, trimmed and collapsed), or the category when there is none, with no mark in the name; the entry's mark '[ike:<client_entry_id>]' is the whole of the expense's Internal Notes (field description); the duplicate search before every create looks for the mark in Internal Notes, so an expense already created for the entry is adopted and a second run creates nothing; the receipt attachment, the status read-back and every other field sent are unchanged.
+-     V1 Description saved: on the Add sheet a field labelled 'Description (optional)' sits right after the amount and before the category; the text typed there is posted with the entry and the Worker stores it with the entry, trimmed and with whitespace runs collapsed to one space; a description longer than 200 characters is refused with a plain message and nothing is saved; an entry posted with an empty description, or with none, is saved exactly as before; the sheet clears the field when it opens; save-first, PIN, origin, rate limit and idempotency are unchanged.
+-     V2 Description in Odoo: the draft hr.expense the Worker creates for an entry that has a description is named '<category> - <description> [ike:<client_entry_id>]'; for an entry without one the name stays '<category> [ike:<client_entry_id>]'; the mark search before every create, the adoption of a found expense, the receipt upload and every other field sent are unchanged.
 
 ## Decisions
 -     D1. Bank-transfer expenses only. No cash and no cash/transfer choice.
@@ -43,11 +47,11 @@ Reason:     The owner asked only for a clean Description; the rest is unchanged 
 -     D16. The Odoo expense date is the Maldives (UTC+5) date on which the entry was saved, not the date it reached Odoo.
 -     D17. The Worker is the ike Odoo layer: Worker name 'odoo' on the owner's workers.dev subdomain 'ike-mrh' ('ike' was taken), URL https://odoo.ike-mrh.workers.dev, D1 database 'ike-odoo'. Expense routes move under /expenses/: /expenses/entries, /expenses/categories, /expenses/entries/<id>/retry. OPTIONS stays 204 on any path and the origin check stays on every path. Each later Odoo area gets its own /<area>/ prefix and its own Odoo user and key; no route passes arbitrary Odoo calls through.
 -     D18. Live-schema corrections from the read-only check of the live Odoo on 2026-10-07: no payment method line is named 'Bank Transfer MVR'; the company-paid bank-transfer line is id 2 'Transfer' (journal 6 Bank, outbound) and id 1 is also 'Transfer' (inbound), so a name search is ambiguous and the Worker sends the configured id ODOO_PAYMENT_METHOD_LINE_ID instead. total_amount and total_amount_currency are both writable and equal for MVR, the company currency; price_unit is readonly and computed, so it is never sent. The other assumed facts (name as the mark, the 21 products, receipt by res_model/res_id, the 7 state values, the 'id in' read shape, employee 1, payment_mode company_account) were confirmed. The page's Retry button (D12) calls the Worker's retry route.
--     D19. Description (owner, 2026-10-07): an optional free-text description, typed on the Add sheet in its own field right after the amount. The Worker stores it with the entry, trimmed, with internal whitespace runs collapsed to one space, at most 200 characters; longer text is refused before anything is saved, and an empty or absent description is the same as none. In Odoo it is the draft hr.expense's name (Odoo's 'Description' field) as D21 sets out. It is not shown in the day's entry list.
+-     D19. Description (owner, 2026-10-07): an optional free-text description, typed on the Add sheet in its own field right after the amount. The Worker stores it with the entry, trimmed, with internal whitespace runs collapsed to one space, at most 200 characters; longer text is refused before anything is saved, and an empty or absent description is the same as none. In Odoo it is part of the draft hr.expense's name (Odoo's 'Description' field): '<category> - <description> [ike:<client_entry_id>]' when present, and unchanged '<category> [ike:<client_entry_id>]' when absent, so the mark search (D8) and the category stay where they are. It is not shown in the day's entry list.
 -     D20. Pane alignment with Sales and Quotations (owner, 2026-10-07, shipped in 7019c50, replacing these parts of the D9 screens): the Expenses pane has no header; its day pills run oldest on the left to today on the right; the Add sheet's PIN is a field like the others, label above and a full-width input below, with field borders that read in dark mode; the amount's digits sit centred under the AMOUNT label.
--     D21. Clean description in Odoo (owner, 2026-10-08, replacing the name format of D19 that shipped in 5281554): the draft hr.expense's name (Odoo's 'Description') is exactly the stored description, or the category when the description is empty. The entry's mark '[ike:<client_entry_id>]' moves out of the name into the expense's 'Internal Notes' (the hr.expense field `description`, stored text, writable on saas-19.4), which holds the mark alone. The duplicate search before every create (D8) looks for the mark there: [['description','like','[ike:<client_entry_id>]']]. The receipt attachment keeps its name 'receipt [ike:<client_entry_id>]'. Expenses already in Odoo keep their old names; the status read-back finds them by stored Odoo id, so they need no change. Accepted risk: an entry whose create succeeded under the old version but whose Odoo id was never stored would not be found by the new search; on 2026-10-08 every live entry already had its Odoo id.
 
 ## Values
 | Observation | Dependencies |
 | --- | --- |
-| V1 Clean description in Odoo: the draft hr.expense the Worker creates is named exactly the description the staff typed (as stored, trimmed and collapsed), or the category when there is none, with no mark in the name; the entry's mark '[ike:<client_entry_id>]' is the whole of the expense's Internal Notes (field description); the duplicate search before every create looks for the mark in Internal Notes, so an expense already created for the entry is adopted and a second run creates nothing; the receipt attachment, the status read-back and every other field sent are unchanged. |  |
+| V1 Description saved: on the Add sheet a field labelled 'Description (optional)' sits right after the amount and before the category; the text typed there is posted with the entry and the Worker stores it with the entry, trimmed and with whitespace runs collapsed to one space; a description longer than 200 characters is refused with a plain message and nothing is saved; an entry posted with an empty description, or with none, is saved exactly as before; the sheet clears the field when it opens; save-first, PIN, origin, rate limit and idempotency are unchanged. |  |
+| V2 Description in Odoo: the draft hr.expense the Worker creates for an entry that has a description is named '<category> - <description> [ike:<client_entry_id>]'; for an entry without one the name stays '<category> [ike:<client_entry_id>]'; the mark search before every create, the adoption of a found expense, the receipt upload and every other field sent are unchanged. | V1 Description saved: on the Add sheet a field labelled 'Description (optional)' sits right after the amount and before the category; the text typed there is posted with the entry and the Worker stores it with the entry, trimmed and with whitespace runs collapsed to one space; a description longer than 200 characters is refused with a plain message and nothing is saved; an entry posted with an empty description, or with none, is saved exactly as before; the sheet clears the field when it opens; save-first, PIN, origin, rate limit and idempotency are unchanged. |

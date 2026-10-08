@@ -469,8 +469,10 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   assert.equal(creates.length, 1, 'one saved entry became exactly one hr.expense');
   const vals = creates[0].args[0][0];
   const MARK_A = '[ike:ce-a]';
-  assert.equal(vals.name, `Salary ${MARK_A}`,
-    'the description carries the category and the unique mark naming the entry');
+  assert.equal(vals.name, 'Salary',
+    'with no description typed, Odoo\'s Description column is exactly the category (D21)');
+  assert.equal(vals.description, MARK_A,
+    'the unique mark naming the entry is the whole of the Internal Notes (D21)');
   assert.equal(vals.employee_id, EMPLOYEE_ID, 'every expense is Ahmed Rashad, id 1 (D4)');
   assert.equal(vals.product_id, PRODUCT.id,
     'the category resolved to an expensable product by name, never a guessed id');
@@ -491,8 +493,8 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   assert.equal(firstObject.model, 'hr.expense');
   assert.equal(firstObject.rpc, 'search_read',
     'every attempt looks for the mark before it considers creating anything');
-  assert.deepEqual(firstObject.args, [[['name', 'like', MARK_A]]],
-    'the dedupe search is by the entry\'s own mark, as a substring');
+  assert.deepEqual(firstObject.args, [[['description', 'like', MARK_A]]],
+    'the dedupe search is by the entry\'s own mark in Internal Notes, as a substring');
 
   // ---- the receipt became one attachment on that expense, byte-identical -----
   const expenseId = creates[0].createdId;
@@ -593,7 +595,7 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
   assert.equal(lost.odoo_id, null, 'the Worker never learned the id');
   assert.equal(lost.attempts, 1);
   const marked = [...odoo.state.expenses.values()]
-    .filter(e => String(e.name).includes('[ike:ce-d]'));
+    .filter(e => String(e.description).includes('[ike:ce-d]'));
   assert.equal(marked.length, 1, 'but Odoo committed the expense');
 
   const retried = await w.call('POST', '/expenses/entries/ce-d/retry');
@@ -602,9 +604,9 @@ test('worker_creates_one_draft_expense_per_entry_and_never_a_second', async t =>
     client_entry_id: 'ce-d', status: DRAFT, next_retry_at: null, amount_mvr: '31.00'
   });
   const adopted = [...odoo.state.expenses.values()]
-    .filter(e => String(e.name).includes('[ike:ce-d]'));
+    .filter(e => String(e.description).includes('[ike:ce-d]'));
   assert.equal(adopted.length, 1,
-    'the retry found the existing expense by its mark instead of creating a second');
+    'the retry found the existing expense by the mark in its Internal Notes, not a second create');
   const rd = await row(w.db, 'ce-d');
   assert.equal(rd.odoo_id, marked[0].id, 'and adopted exactly that expense');
   assert.equal(rd.next_retry_at, null);

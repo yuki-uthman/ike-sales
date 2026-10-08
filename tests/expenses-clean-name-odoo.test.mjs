@@ -1,26 +1,22 @@
-// Oracle for "V2 Description in Odoo".
+// Oracle for "V1 Clean description in Odoo".
 //
-// Authority: docs/product/architecture/brief.md#V2 Description in Odoo, and the
-// obligations D8, D5/D18 carried with it. Its D19 name shape was superseded by
-// "V1 Clean description in Odoo" (D21): the staff's words are now the whole of
-// the name, and the mark moved to the expense's Internal Notes (its
-// `description` field). This oracle keeps its original intent — the typed
-// description reaches the column the accountant reads, and nothing else about
-// the send changes — judged against D21's shape.
+// Authority: docs/product/architecture/brief.md#V1 Clean description in Odoo,
+// and the obligations D21, D8, D5/D18 carried with it.
 //
-// Driving ports: HTTP (POST /expenses/entries seeds the entries) and the
-// Cloudflare cron. The Worker runs in a real workerd (miniflare) on a loopback
-// socket; the schedule is triggered through workerd's own cron port
-// (/cdn-cgi/handler/scheduled), never by importing a handler.
+// Driving ports: HTTP (POST /expenses/entries seeds the entries, POST
+// /expenses/entries/<id>/retry is D12's button) and the Cloudflare cron. The
+// Worker runs in a real workerd (miniflare) on a loopback socket; the schedule
+// is triggered through workerd's own cron port (/cdn-cgi/handler/scheduled),
+// never by importing a handler.
 //
 // Driven port: Odoo's XML-RPC endpoint, which here is a LOCAL FAKE on loopback
-// speaking the same wire protocol. The name this oracle judges is read off the
-// wire, out of the create call's vals — not out of any Worker-internal value.
-// No call in this file can reach mrh-investment.odoo.com: ODOO_URL is bound to
-// the fake.
+// speaking the same wire protocol as saas-19.4. Every name and every Internal
+// Note this oracle judges is read off the wire, out of the create call's vals —
+// never out of a Worker-internal value. No call in this file can reach
+// mrh-investment.odoo.com: ODOO_URL is bound to the fake.
 //
 // Nothing under worker/src is imported: expenseName is never called directly,
-// only observed through the name Odoo is actually sent.
+// only observed through what Odoo is actually sent.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -158,11 +154,11 @@ function decodeCall(xml) {
 }
 
 // ===========================================================================
-// The fake Odoo. It logs every call and seeds the records the sync resolves by
-// name. hr.expense carries both a name (Odoo's 'Description' column) and a
-// `description` text field ('Internal Notes'), where the mark lives. Its `like`
-// is a substring match, exactly as Odoo's is, which is what lets this oracle
-// prove the dedupe search finds the mark in the Internal Notes.
+// The fake Odoo, in saas-19.4's shapes. hr.expense carries BOTH a name (the
+// column the accountant reads as 'Description') and a `description` text field
+// (labelled 'Internal Notes'), and its `like` is a substring match exactly as
+// Odoo's is. That is what lets this oracle prove the mark can be found in the
+// Internal Notes while the name holds nothing but the staff's words.
 // ===========================================================================
 
 async function startFakeOdoo() {
@@ -352,9 +348,9 @@ function maldivesDate(at = Date.now()) {
 
 // ===========================================================================
 
-test('the_draft_expense_name_carries_the_description', async t => {
+test('the_odoo_description_is_only_what_staff_typed', async t => {
   const cfg = await readConfig();
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ike-v2-desc-'));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ike-v1-clean-'));
   const odoo = await startFakeOdoo();
   const w0 = { mf: null };
   t.after(async () => {
@@ -365,7 +361,7 @@ test('the_draft_expense_name_carries_the_description', async t => {
 
   // The categories the sync resolves to an expensable product BY NAME.
   odoo.seed('product.product', [
-    { id: 77, name: 'Salary', can_be_expensed: true },
+    { id: 77, name: 'Water', can_be_expensed: true },
     { id: 78, name: 'Meals', can_be_expensed: true },
     { id: 79, name: 'Fuel / Petrol', can_be_expensed: true }
   ]);
@@ -376,112 +372,113 @@ test('the_draft_expense_name_carries_the_description', async t => {
 
   const today = maldivesDate();
   const save = over => w.call('POST', '/expenses/entries', {
-    body: { pin: PIN, category: 'Salary', amount: '250.50', ...over }
+    body: { pin: PIN, category: 'Water', amount: '250.50', ...over }
   });
 
-  // The entries: one with a description, one with none, plus the three ways the
-  // save port is told "no description" — absent, null and whitespace-only.
   const RECEIPT = JPEG(100);
-  const DESCRIPTION = 'Diesel for the pickup';
+  const TYPED = '  Nagaraj  ';          // as the staff typed it, untrimmed
+  const STORED = 'Nagaraj';             // as V1 stored it: trimmed and collapsed
+  const BOAT = 'Boat trip to Male';
 
-  const withDesc = await save({
-    client_entry_id: 'ce-desc', category: 'Fuel / Petrol', amount: '310.00',
-    description: DESCRIPTION, receipt: b64(RECEIPT)
+  const named = await save({
+    client_entry_id: 'ce-water', category: 'Water', amount: '250.50', description: TYPED
   });
-  assert.equal(withDesc.res.status, 200);
-  assert.equal(withDesc.json.saved, true);
+  assert.equal(named.res.status, 200);
+  assert.equal(named.json.saved, true);
 
-  const absent = await save({ client_entry_id: 'ce-absent', category: 'Meals', amount: '42.00' });
-  assert.equal(absent.res.status, 200, 'an entry may still be saved with no description at all');
-  const nulled = await save({
-    client_entry_id: 'ce-null', category: 'Meals', amount: '43.00', description: null
+  const bare = await save({ client_entry_id: 'ce-meals', category: 'Meals', amount: '42.00' });
+  assert.equal(bare.res.status, 200, 'an entry may still be saved with no description at all');
+
+  const fuelled = await save({
+    client_entry_id: 'ce-fuel', category: 'Fuel / Petrol', amount: '310.00',
+    description: BOAT, receipt: b64(RECEIPT)
   });
-  assert.equal(nulled.res.status, 200);
-  const blank = await save({
-    client_entry_id: 'ce-blank', category: 'Meals', amount: '44.00', description: '   \t  '
-  });
-  assert.equal(blank.res.status, 200);
+  assert.equal(fuelled.res.status, 200);
 
   assert.equal(odoo.state.calls.length, 0, 'saving contacts Odoo not at all');
 
   await w.tick();
 
   const creates = () => odoo.objectCalls().filter(c => c.model === 'hr.expense' && c.rpc === 'create');
+  // An expense is found by the ONE place the mark now lives: its Internal Notes.
   const createdFor = id => {
     const hit = creates().find(c => c.args[0][0].description === `[ike:${id}]`);
-    assert.ok(hit, `the entry ${id} became exactly one hr.expense create`);
+    assert.ok(hit, `the entry ${id} became exactly one hr.expense create, marked in Internal Notes`);
     return hit;
   };
 
-  assert.equal(creates().length, 4, 'four saved entries became four hr.expense creates');
+  assert.equal(creates().length, 3, 'three saved entries became three hr.expense creates');
 
-  // ================================================== D21: the name, both forms
-  const described = createdFor('ce-desc').args[0][0];
-  assert.equal(described.name, DESCRIPTION,
-    'a described entry is named exactly the stored description, and nothing else');
+  // ============================================= D21: the name, both forms
+  const water = createdFor('ce-water').args[0][0];
+  assert.equal(water.name, STORED,
+    'a described entry is named EXACTLY the stored description — no category, no separator, no mark');
+  assert.equal(createdFor('ce-fuel').args[0][0].name, BOAT);
+  assert.equal(createdFor('ce-meals').args[0][0].name, 'Meals',
+    'an entry with no description is named exactly the category, and nothing else');
 
-  for (const id of ['ce-absent', 'ce-null', 'ce-blank']) {
-    assert.equal(createdFor(id).args[0][0].name, 'Meals',
-      `an entry with no description is named exactly the category (${id})`);
-  }
-
-  // No separator survives in either form, and the typed words are not doubled.
-  for (const id of ['ce-desc', 'ce-absent', 'ce-null', 'ce-blank']) {
-    assert.ok(!createdFor(id).args[0][0].name.includes(' - '),
-      `no separator is left behind in the name (${id})`);
-  }
-  assert.equal(described.name.split(DESCRIPTION).length - 1, 1,
-    'the description appears exactly once in the name');
-
-  // ============== D21: the mark left the name entirely for the Internal Notes
-  for (const id of ['ce-desc', 'ce-absent', 'ce-null', 'ce-blank']) {
-    const vals = createdFor(id).args[0][0];
-    assert.ok(!vals.name.includes('[ike:'),
+  for (const id of ['ce-water', 'ce-meals', 'ce-fuel']) {
+    const name = createdFor(id).args[0][0].name;
+    assert.ok(!name.includes('[ike:'),
       `no mark leaks into the name the accountant reads (${id})`);
-    assert.equal(vals.description, `[ike:${id}]`,
-      `the mark is the whole of the Internal Notes instead (${id})`);
+    assert.ok(!name.includes(' - '),
+      `and no separator survives either (${id})`);
+  }
+  assert.ok(!water.name.includes('Water'),
+    'the category is gone from a described name: the accountant reads only the typed words');
+
+  // ================= D21: the mark is the WHOLE of the expense's Internal Notes
+  for (const id of ['ce-water', 'ce-meals', 'ce-fuel']) {
+    assert.equal(createdFor(id).args[0][0].description, `[ike:${id}]`,
+      `Internal Notes hold the mark alone — not a word more (${id})`);
   }
 
-  // ======= D8: the mark search runs BEFORE every create, with the same domain --
+  // ===== D8 + D21: the search before EVERY create reads Internal Notes --------
   const firstObject = odoo.objectCalls()[0];
   assert.equal(firstObject.model, 'hr.expense');
   assert.equal(firstObject.rpc, 'search_read',
     'every attempt still looks for the mark before it considers creating anything');
-  for (const id of ['ce-desc', 'ce-absent', 'ce-null', 'ce-blank']) {
+  for (const id of ['ce-water', 'ce-meals', 'ce-fuel']) {
     const searches = odoo.objectCalls().filter(c =>
       c.model === 'hr.expense' && c.rpc === 'search_read'
       && JSON.stringify(c.args).includes(`[ike:${id}]`));
     assert.ok(searches.length >= 1, `the dedupe search ran for ${id}`);
     assert.deepEqual(searches[0].args, [[['description', 'like', `[ike:${id}]`]]],
-      `the dedupe search looks for the mark in Internal Notes (${id})`);
+      `the dedupe search is by the mark in Internal Notes, as a substring (${id})`);
+    assert.deepEqual(searches[0].kwargs.fields, ['id', 'state']);
+    assert.equal(searches[0].kwargs.limit, 2);
     const searchAt = odoo.objectCalls().indexOf(searches[0]);
     const createAt = odoo.objectCalls().indexOf(createdFor(id));
     assert.ok(searchAt < createAt, `the search preceded the create for ${id}`);
   }
+  assert.ok(!odoo.objectCalls().some(c =>
+    c.model === 'hr.expense' && c.rpc === 'search_read'
+    && JSON.stringify(c.args).includes('"name"')),
+  'no hr.expense is ever searched by name again');
 
-  // ================================ D5/D18: no other field sent to Odoo changed
+  // ========================== D5/D18: every other create member is unchanged
   const row = async id => w.db.prepare(
     'SELECT client_entry_id, status, odoo_id, entry_date, description FROM entry'
     + ' WHERE client_entry_id = ?').bind(id).first();
-  const descRow = await row('ce-desc');
-  assert.equal(descRow.description, DESCRIPTION,
+  const waterRow = await row('ce-water');
+  assert.equal(waterRow.description, STORED,
     'the stored description is the one V1 normalised, carried through untouched');
-  assert.deepEqual(Object.keys(described).sort(), [
+
+  const fuel = createdFor('ce-fuel').args[0][0];
+  assert.deepEqual(Object.keys(fuel).sort(), [
     'date', 'description', 'employee_id', 'name', 'payment_method_line_id',
     'payment_mode', 'product_id', 'total_amount', 'total_amount_currency'
-  ], 'the create sends exactly the declared fields — the mark added description, nothing more');
-  assert.equal(described.employee_id, EMPLOYEE_ID);
-  assert.equal(described.product_id, 79, 'the category still resolved by name, not the name sent');
-  assert.equal(described.total_amount, '310.00');
-  assert.equal(described.total_amount_currency, '310.00');
-  assert.equal(described.payment_mode, 'company_account');
-  assert.equal(described.payment_method_line_id, PAYMENT_LINE_ID);
-  assert.equal(described.date, descRow.entry_date);
-  assert.equal(described.date, today);
-  assert.ok(!('state' in described), 'no state is written: the record is born draft');
-  assert.equal(described.description, '[ike:ce-desc]',
-    "the staff's words reach Odoo only through the name; the field holds the mark alone");
-  assert.ok(!('currency_id' in described), 'no currency is sent: MVR is the company currency');
+  ], 'the create sends exactly the declared members: the mark added description and nothing else');
+  assert.equal(fuel.employee_id, EMPLOYEE_ID);
+  assert.equal(fuel.product_id, 79, 'the category still resolved by name, not by the name sent');
+  assert.equal(fuel.total_amount, '310.00');
+  assert.equal(fuel.total_amount_currency, '310.00');
+  assert.equal(fuel.payment_mode, 'company_account');
+  assert.equal(fuel.payment_method_line_id, PAYMENT_LINE_ID);
+  assert.equal(fuel.date, (await row('ce-fuel')).entry_date);
+  assert.equal(fuel.date, today);
+  assert.ok(!('state' in fuel), 'no state is written: the record is born draft');
+  assert.ok(!('currency_id' in fuel), 'no currency is sent: MVR is the company currency');
 
   const methods = new Set(odoo.state.calls.map(c => c.rpc || c.method));
   assert.deepEqual([...methods].sort(), ['authenticate', 'create', 'search_read'],
@@ -489,26 +486,29 @@ test('the_draft_expense_name_carries_the_description', async t => {
   assert.ok(!JSON.stringify(odoo.state.calls).includes('action_'),
     'nothing is ever submitted, approved, posted or paid');
 
-  // ======================= the receipt attachment name is untouched by all this
+  // ===================== the receipt attachment is untouched by all this -------
   const attachments = [...odoo.state.attachments.values()];
   assert.equal(attachments.length, 1, 'the one given receipt became exactly one attachment');
-  assert.equal(attachments[0].name, 'receipt [ike:ce-desc]',
-    'the attachment name carries the mark alone — never the description');
+  assert.equal(attachments[0].name, 'receipt [ike:ce-fuel]',
+    'the attachment name still carries the mark alone');
   assert.equal(attachments[0].res_model, 'hr.expense');
-  assert.equal(attachments[0].res_id, createdFor('ce-desc').createdId);
+  assert.equal(attachments[0].res_id, createdFor('ce-fuel').createdId);
   assert.equal(attachments[0].mimetype, 'image/jpeg');
+  assert.equal(attachments[0].file_size, RECEIPT.length);
+  assert.equal(attachments[0].checksum,
+    crypto.createHash('sha1').update(RECEIPT).digest('hex'));
   assert.ok(Buffer.from(attachments[0].raw, 'base64').equals(RECEIPT),
     'the attached bytes are the posted receipt, byte for byte');
 
-  // =============== a later run creates no second expense for a described entry
+  // ================== a later run creates no second expense for any of them ----
   await w.tick();
   await w.tick();
-  assert.equal(creates().length, 4,
-    'later runs create no second expense: a description in front of the mark cannot hide it');
+  assert.equal(creates().length, 3,
+    'later runs create no second expense: the mark in Internal Notes is still found');
   assert.equal(odoo.state.attachments.size, 1, 'and no second copy of the receipt');
 
-  // ====== and a described expense whose create answer was lost is ADOPTED, so
-  // ====== the substring search really does see past the description (D8) ------
+  // ====== a create Odoo committed but whose answer was lost is ADOPTED, which
+  // ====== is only possible if the search really reads Internal Notes (D8) -----
   await save({
     client_entry_id: 'ce-lost', category: 'Meals', amount: '19.00',
     description: 'Lunch with the supplier'
@@ -518,8 +518,10 @@ test('the_draft_expense_name_carries_the_description', async t => {
   odoo.set('ok');
   const committed = [...odoo.state.expenses.values()]
     .filter(e => String(e.description).includes('[ike:ce-lost]'));
-  assert.equal(committed.length, 1, 'Odoo committed the described expense');
-  assert.equal(committed[0].name, 'Lunch with the supplier');
+  assert.equal(committed.length, 1, 'Odoo committed the expense');
+  assert.equal(committed[0].name, 'Lunch with the supplier',
+    'and named it exactly what staff typed');
+  assert.equal(committed[0].description, '[ike:ce-lost]');
   assert.equal((await row('ce-lost')).odoo_id, null, 'the Worker never learned the id');
 
   const retried = await w.call('POST', '/expenses/entries/ce-lost/retry');
@@ -528,15 +530,21 @@ test('the_draft_expense_name_carries_the_description', async t => {
   assert.equal(
     [...odoo.state.expenses.values()]
       .filter(e => String(e.description).includes('[ike:ce-lost]')).length,
-    1, 'the retry found the described expense by its mark instead of creating a second');
+    1, 'the retry found that expense by the mark in its Internal Notes, not a second create');
   assert.equal((await row('ce-lost')).odoo_id, committed[0].id,
     'and adopted exactly that expense');
 
-  // =========== the day list still projects the seven declared members, with no
-  // =========== description among them: this version changed Odoo, not the page
+  await w.tick();
+  assert.equal(
+    [...odoo.state.expenses.values()]
+      .filter(e => String(e.description).includes('[ike:ce-lost]')).length,
+    1, 'and the next scheduled run still creates nothing');
+
+  // ============ the day list still projects the seven declared members: this
+  // ============ Request changed what Odoo is sent, not the page --------------
   const day = await w.call('GET', `/expenses/entries?date=${today}`);
   assert.equal(day.res.status, 200);
-  const listed = day.json.entries.find(e => e.client_entry_id === 'ce-desc');
+  const listed = day.json.entries.find(e => e.client_entry_id === 'ce-fuel');
   assert.deepEqual(Object.keys(listed).sort(), [
     'amount_mvr', 'category', 'client_entry_id', 'next_retry_at',
     'receipt_bytes', 'receipt_present', 'status'
@@ -544,4 +552,6 @@ test('the_draft_expense_name_carries_the_description', async t => {
   assert.equal(listed.status, 'Draft');
   assert.equal(listed.amount_mvr, '310.00');
   assert.equal(listed.category, 'Fuel / Petrol');
+  assert.equal(day.json.entries.find(e => e.client_entry_id === 'ce-water').status, 'Draft');
+  assert.equal(day.json.entries.find(e => e.client_entry_id === 'ce-meals').status, 'Draft');
 });

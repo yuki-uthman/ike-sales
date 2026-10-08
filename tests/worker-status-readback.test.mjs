@@ -587,7 +587,8 @@ test('worker_reads_odoo_state_back_into_the_chip_and_writes_nothing', async t =>
   assertEntryShape(await chip('ce-01'), { status: APPROVED, next_retry_at: null });
   assertEntryShape(await chip('ce-07'), { status: REFUSED, next_retry_at: null });
   assert.equal(
-    [...odoo.state.expenses.values()].filter(e => String(e.name).includes('[ike:ce-01]')).length,
+    [...odoo.state.expenses.values()]
+      .filter(e => String(e.description).includes('[ike:ce-01]')).length,
     1, 'and no second expense was ever created for it: the one original remains');
 
   // ===================================================================== §8
