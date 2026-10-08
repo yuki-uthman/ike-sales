@@ -841,7 +841,9 @@ test('retry_sends_the_configured_bank_transfer_line_id_with_both_mvr_amounts_and
     // =================================================================== §4
     // Obligation B: what the press actually put on the wire.
     const creates = odoo.expenseCreates();
-    const mine = creates.filter(c => String(c.args[0][0].name).includes(ENTRY_ID));
+    // D21: the mark lives in Internal Notes (field `description`), never in the
+    // name, so this entry's create is selected by its mark there.
+    const mine = creates.filter(c => String(c.args[0][0].description).includes(ENTRY_ID));
     assert.equal(mine.length, 1, 'the press created exactly one hr.expense for this entry');
     const vals = mine[0].args[0][0];
 
