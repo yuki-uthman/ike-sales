@@ -658,7 +658,7 @@
   <div class="e-flight" aria-hidden="true" hidden>
     <div class="e-flbody">
       <div class="e-fldots"><i></i><i></i><i></i></div>
-      <div class="e-fltitle">Sending</div>
+      <div class="e-fltitle">Processing</div>
       <div class="e-flwhat"></div>
     </div>
   </div>
@@ -2546,7 +2546,11 @@ window.ikeDay = (function () {
   // ---- The post in flight (a layer only; see .e-flight) ----
   var flightEl = document.querySelector('.e-flight');
   var flightWhatEl = flightEl.querySelector('.e-flwhat');
-  var FLIGHT_MIN_MS = 1400;
+  // Grow to the full screen, hold "Processing" there, then shrink away.
+  var FLIGHT_GROW_MS = 650;
+  var FLIGHT_HOLD_MS = 1500;
+  var FLIGHT_SHRINK_MS = 850;
+  var FLIGHT_MIN_MS = FLIGHT_GROW_MS + FLIGHT_HOLD_MS;
   var FLASH_MS = 1800;
   var flight = null;
 
@@ -2586,7 +2590,7 @@ window.ikeDay = (function () {
     flightEl.classList.remove('is-full');
     flightEl.hidden = false;
     f.anim = flightEl.animate([frameOf(f.from, '16px', 1), frameOf(screenBox(), '0px', 1)],
-      { duration: 420, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'forwards' });
+      { duration: FLIGHT_GROW_MS, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'forwards' });
     f.anim.onfinish = function () { if (flight === f) flightEl.classList.add('is-full'); };
     flight = f;
     return f;
@@ -2602,7 +2606,7 @@ window.ikeDay = (function () {
       frameOf(screenBox(), '0px', 1),
       Object.assign(frameOf(box, radius, 1), { offset: 0.78 }),
       frameOf(box, radius, 0)
-    ], { duration: 560, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' });
+    ], { duration: FLIGHT_SHRINK_MS, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' });
     if (old) old.cancel();
     f.anim.onfinish = function () { then(); flightDone(f); };
   }
@@ -2621,7 +2625,7 @@ window.ikeDay = (function () {
       if (!row) { flightDone(f); flashRow(id); return; }
       row.scrollIntoView({ block: 'center' });
       flightTo(f, boxOf(row, 8), '12px', function () {});
-      setTimeout(function () { flashRow(id); }, 400);
+      setTimeout(function () { flashRow(id); }, Math.round(FLIGHT_SHRINK_MS * 0.7));
     });
   }
   // Not saved: back into the button, where the sheet says why.
@@ -2713,7 +2717,7 @@ window.ikeDay = (function () {
     }
     state.posting = true;
     postBtn.disabled = true;
-    noteEl.textContent = 'Sending…';
+    noteEl.textContent = '';
     flightStart();
     prepareReceipt(pickedFile(), send, function () {
       state.posting = false;
