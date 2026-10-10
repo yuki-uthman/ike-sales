@@ -1,0 +1,19 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "A · Ledger", "x": 0, "y": 0, "w": 390, "h": 1080 },
+    { "file": "DarkDial.dc.html", "title": "B · Dark dial", "x": 480, "y": 0, "w": 390, "h": 720 },
+    { "file": "PaperLedger.dc.html", "title": "C · Paper ledger", "x": 960, "y": 0, "w": 390, "h": 1060 },
+    { "file": "ShareStrip.dc.html", "title": "D · Share strip", "x": 1440, "y": 0, "w": 390, "h": 820 },
+    { "file": "TimelineFeed.dc.html", "title": "E · Timeline feed", "x": 1920, "y": 0, "w": 390, "h": 900 }
+  ],
+  "annotations": [
+    {
+      "id": "concepts-brief",
+      "x": 0,
+      "y": -230,
+      "w": 560,
+      "text": "Five directions for a daily expenses dashboard, all on the same sample day (Sat 12 Sep, 9 entries, MVR 3,480).\n\nA Ledger: sister of the Ike Sales screen. Total, bars by category group, list of entries.\nB Dark dial: glanceable. Spend against a daily cap, sales / expenses / net, category tiles.\nC Paper ledger: the staff category sheet turned into a daily statement. Codes, hairline bars, totals rule.\nD Share strip: analytical. Share of spend, expenses as % of sales, the week so far.\nE Timeline feed: the filing flow. Entries by time of day, week heat strip, one Add button.\n\nPick one and the final builds into Main."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

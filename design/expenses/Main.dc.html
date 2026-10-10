@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f7f6; font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; color: #0d1f1c; }
+    a { color: #0f6f68; } a:hover { color: #0b5750; }
+  </style>
+</helmet>
+<div style="min-height: 1080px; background: #f4f7f6; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 20px">
+
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: baseline; gap: 10px">
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.01em">Ike Expenses</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #7c8c88">MRH Investment</span>
+    </div>
+    <div style="display: flex; gap: 8px; padding: 4px 0; overflow: hidden">
+      <span style="flex: 0 0 auto; height: 36px; padding: 0 14px; border-radius: 999px; background: #ffffff; color: #4c5f5b; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(13,31,28,0.06)">Tue 8</span>
+      <span style="flex: 0 0 auto; height: 36px; padding: 0 14px; border-radius: 999px; background: #ffffff; color: #4c5f5b; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(13,31,28,0.06)">Wed 9</span>
+      <span style="flex: 0 0 auto; height: 36px; padding: 0 14px; border-radius: 999px; background: #ffffff; color: #4c5f5b; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(13,31,28,0.06)">Thu 10</span>
+      <span style="flex: 0 0 auto; height: 36px; padding: 0 14px; border-radius: 999px; background: #ffffff; color: #4c5f5b; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(13,31,28,0.06)">Fri 11</span>
+      <span style="flex: 0 0 auto; height: 36px; padding: 0 14px; border-radius: 999px; background: #0f6f68; color: #ffffff; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; box-shadow: 0 6px 14px -6px rgba(0,0,0,0.35)">Today</span>
+    </div>
+  </div>
+
+  <div style="padding: 4px 2px 0">
+    <div style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; line-height: 1.15">Saturday</div>
+    <div style="font-size: 13px; color: #4c5f5b; margin-top: 2px">12 September 2026</div>
+  </div>
+
+  <div style="background: #ffffff; border: 1px solid rgba(13,31,28,0.08); border-radius: 18px; box-shadow: 0 1px 2px rgba(13,31,28,0.05), 0 12px 32px -16px rgba(13,31,28,0.22); padding: 18px 18px 16px; display: flex; flex-direction: column">
+    <div style="font-family: Manrope, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #7c8c88">Spent today</div>
+    <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 6px; font-family: Manrope, sans-serif; font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums">
+      <span style="font-size: 15px; font-weight: 700; color: #4c5f5b; letter-spacing: 0.02em">MVR</span><span>3,480</span>
+    </div>
+    <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 600; margin-top: 8px; color: #4c5f5b">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" style="stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round"><path d="M7 12V2M2.5 6.5L7 2l4.5 4.5"></path></svg>
+      <span>+62.6% vs yesterday</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 22px">
+      <div style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 52px; gap: 10px; align-items: center">
+        <span style="font-size: 12.5px; font-weight: 600; color: #0d1f1c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Vehicle &amp; Delivery</span>
+        <div style="height: 10px; background: #edf2f0; border-radius: 4px; overflow: hidden"><div style="width: 100%; height: 100%; background: #0f6f68; border-radius: 4px"></div></div>
+        <span style="font-size: 12.5px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums">1,900</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 52px; gap: 10px; align-items: center">
+        <span style="font-size: 12.5px; font-weight: 600; color: #0d1f1c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Marketing &amp; Software</span>
+        <div style="height: 10px; background: #edf2f0; border-radius: 4px; overflow: hidden"><div style="width: 31.6%; height: 100%; background: #0f6f68; border-radius: 4px"></div></div>
+        <span style="font-size: 12.5px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums">600</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 52px; gap: 10px; align-items: center">
+        <span style="font-size: 12.5px; font-weight: 600; color: #0d1f1c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Shop &amp; Supplies</span>
+        <div style="height: 10px; background: #edf2f0; border-radius: 4px; overflow: hidden"><div style="width: 26.6%; height: 100%; background: #0f6f68; border-radius: 4px"></div></div>
+        <span style="font-size: 12.5px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums">505</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 52px; gap: 10px; align-items: center">
+        <span style="font-size: 12.5px; font-weight: 600; color: #0d1f1c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Communication</span>
+        <div style="height: 10px; background: #edf2f0; border-radius: 4px; overflow: hidden"><div style="width: 13.2%; height: 100%; background: #0f6f68; border-radius: 4px"></div></div>
+        <span style="font-size: 12.5px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums">250</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 52px; gap: 10px; align-items: center">
+        <span style="font-size: 12.5px; font-weight: 600; color: #0d1f1c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Utilities</span>
+        <div style="height: 10px; background: #edf2f0; border-radius: 4px; overflow: hidden"><div style="width: 7.9%; height: 100%; background: #0f6f68; border-radius: 4px"></div></div>
+        <span style="font-size: 12.5px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums">150</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 52px; gap: 10px; align-items: center">
+        <span style="font-size: 12.5px; font-weight: 600; color: #0d1f1c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">General</span>
+        <div style="height: 10px; background: #edf2f0; border-radius: 4px; overflow: hidden"><div style="width: 3.9%; height: 100%; background: #0f6f68; border-radius: 4px"></div></div>
+        <span style="font-size: 12.5px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums">75</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #ffffff; border: 1px solid rgba(13,31,28,0.08); border-radius: 18px; box-shadow: 0 1px 2px rgba(13,31,28,0.05), 0 12px 32px -16px rgba(13,31,28,0.22); display: flex; flex-direction: column; padding-bottom: 8px">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px">
+      <span style="font-family: Manrope, sans-serif; font-weight: 700; font-size: 15px">Entries</span>
+      <span style="font-size: 12.5px; color: #7c8c88">9 entries</span>
+    </div>
+    <div style="display: flex; flex-direction: column; padding: 0 8px">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Vehicle Maintenance</span><span style="font-size: 12px; color: #7c8c88">VEH-MAINT · Delivery bike service</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">1,250</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Advertising &amp; Marketing</span><span style="font-size: 12px; color: #7c8c88">ADS-MKT · Facebook boost, week 2</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">600</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Fuel / Petrol</span><span style="font-size: 12px; color: #7c8c88">FUEL · Pickup, full tank</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">450</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Stationery &amp; Packing Supplies</span><span style="font-size: 12px; color: #7c8c88">STAT-PACK · Tape, markers, bubble wrap</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">385</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Communication</span><span style="font-size: 12px; color: #7c8c88">COMM · Shop phone top-up</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">250</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Gate Pass (Boat Delivery)</span><span style="font-size: 12px; color: #7c8c88">GATEPASS · 2 trips</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">200</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Waste Disposal</span><span style="font-size: 12px; color: #7c8c88">WASTE · Weekly pickup</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">150</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Shop Maintenance &amp; Repairs</span><span style="font-size: 12px; color: #7c8c88">SHOP-MAINT · LED tubes ×2</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">120</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Expenses (General)</span><span style="font-size: 12px; color: #7c8c88">EXP_GEN · Cable ties for display</span></span>
+        <span style="font-family: Manrope, sans-serif; font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums">75</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

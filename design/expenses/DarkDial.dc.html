@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0b1614; font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; color: #f2f6f5; }
+    a { color: #29b3a6; } a:hover { color: #5ccfc4; }
+  </style>
+</helmet>
+<div style="min-height: 720px; background: #0b1614; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 20px">
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.01em">Ike Expenses</span>
+      <span style="font-size: 13px; color: #b7c6c2">Saturday, 12 September</span>
+    </div>
+    <span style="height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: #b7c6c2; font-weight: 600; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px">
+      <span>Today</span>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" style="stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M3 4.5l3 3 3-3"></path></svg>
+    </span>
+  </div>
+
+  <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 14px 32px -16px rgba(0,0,0,0.6); padding: 18px; display: flex; align-items: center; gap: 18px">
+    <div style="position: relative; width: 140px; height: 140px; flex: 0 0 auto">
+      <svg width="140" height="140" viewBox="0 0 140 140" style="display: block; transform: rotate(-90deg)">
+        <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12"></circle>
+        <circle cx="70" cy="70" r="54" fill="none" stroke="#29b3a6" stroke-width="12" stroke-linecap="round" stroke-dasharray="236.1 339.3"></circle>
+      </svg>
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+        <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums">3,480</span>
+        <span style="font-size: 11px; color: #82938e; font-weight: 600">MVR</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+      <div style="font-family: Manrope, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #82938e">Daily cap</div>
+      <div style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">70%</div>
+      <div style="font-size: 13px; color: #b7c6c2; line-height: 1.35">MVR 1,520 left of the 5,000 cap</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 12px 12px 12px; display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 11.5px; color: #82938e; font-weight: 600">Sales</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 17px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums">28,280</span>
+    </div>
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 12px 12px 12px; display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 11.5px; color: #82938e; font-weight: 600">Expenses</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 17px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: #29b3a6">3,480</span>
+    </div>
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 12px 12px 12px; display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 11.5px; color: #82938e; font-weight: 600">Net</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 17px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums">24,800</span>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 6px 2px 0">
+    <span style="font-family: Manrope, sans-serif; font-weight: 700; font-size: 15px">By category</span>
+    <span style="font-size: 12.5px; color: #82938e">9 entries</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12.5px; font-weight: 600; color: #b7c6c2">Vehicle &amp; Delivery</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums">1,900</span>
+      <div style="height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden"><div style="width: 54.6%; height: 100%; background: #29b3a6; border-radius: 2px"></div></div>
+      <span style="font-size: 11.5px; color: #82938e">55% · 3 entries</span>
+    </div>
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12.5px; font-weight: 600; color: #b7c6c2">Marketing &amp; Software</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums">600</span>
+      <div style="height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden"><div style="width: 17.2%; height: 100%; background: #29b3a6; border-radius: 2px"></div></div>
+      <span style="font-size: 11.5px; color: #82938e">17% · 1 entry</span>
+    </div>
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12.5px; font-weight: 600; color: #b7c6c2">Shop &amp; Supplies</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums">505</span>
+      <div style="height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden"><div style="width: 14.5%; height: 100%; background: #29b3a6; border-radius: 2px"></div></div>
+      <span style="font-size: 11.5px; color: #82938e">15% · 2 entries</span>
+    </div>
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12.5px; font-weight: 600; color: #b7c6c2">Communication</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums">250</span>
+      <div style="height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden"><div style="width: 7.2%; height: 100%; background: #29b3a6; border-radius: 2px"></div></div>
+      <span style="font-size: 11.5px; color: #82938e">7% · 1 entry</span>
+    </div>
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12.5px; font-weight: 600; color: #b7c6c2">Utilities</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums">150</span>
+      <div style="height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden"><div style="width: 4.3%; height: 100%; background: #29b3a6; border-radius: 2px"></div></div>
+      <span style="font-size: 11.5px; color: #82938e">4% · 1 entry</span>
+    </div>
+    <div style="background: #11201d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12.5px; font-weight: 600; color: #b7c6c2">General</span>
+      <span style="font-family: Manrope, sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums">75</span>
+      <div style="height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden"><div style="width: 2.2%; height: 100%; background: #29b3a6; border-radius: 2px"></div></div>
+      <span style="font-size: 11.5px; color: #82938e">2% · 1 entry</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f7ec; font-family: "Work Sans", ui-sans-serif, system-ui, sans-serif; color: #1f2b22; -webkit-font-smoothing: antialiased; }
+    a { color: #a3402c; } a:hover { color: #7f2f1f; }
+  </style>
+</helmet>
+<div style="min-height: 1060px; background: #f3f7ec; display: flex; flex-direction: column; padding: 28px 22px 32px">
+
+  <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 2px solid #5f7c58">
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.14em; color: #a3402c; border: 1.5px solid #a3402c; border-radius: 3px; padding: 4px 9px; transform: rotate(-2deg)">DAILY EXPENSES</span>
+    <div style="font-family: 'Zilla Slab', ui-serif, Georgia, serif; font-weight: 700; font-size: 28px; line-height: 1.1; letter-spacing: -0.005em">Saturday,<br>12 September 2026</div>
+    <div style="font-size: 14px; color: #4d5f4f">9 entries filed in Odoo · total <strong style="color: #1f2b22; font-weight: 600">MVR 3,480</strong></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 22px">
+
+    <div style="display: flex; flex-direction: column">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #c3d2b6">
+        <span style="font-family: 'Zilla Slab', ui-serif, Georgia, serif; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: #5f7c58">Vehicle &amp; Delivery</span>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #46583f">1,900 · 55%</span>
+      </div>
+      <div style="height: 3px; background: #e2ead4; margin-top: 6px"><div style="width: 54.6%; height: 100%; background: #a3402c"></div></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #c3d2b6">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Vehicle Maintenance</span><span style="font-size: 12.5px; color: #4d5f4f">Delivery bike service</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">VEH-MAINT</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">1,250</span></span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #c3d2b6">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Fuel / Petrol</span><span style="font-size: 12.5px; color: #4d5f4f">Pickup, full tank</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">FUEL</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">450</span></span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Gate Pass (Boat Delivery)</span><span style="font-size: 12.5px; color: #4d5f4f">2 trips</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">GATEPASS</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">200</span></span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #c3d2b6">
+        <span style="font-family: 'Zilla Slab', ui-serif, Georgia, serif; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: #5f7c58">Marketing &amp; Software</span>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #46583f">600 · 17%</span>
+      </div>
+      <div style="height: 3px; background: #e2ead4; margin-top: 6px"><div style="width: 17.2%; height: 100%; background: #a3402c"></div></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Advertising &amp; Marketing</span><span style="font-size: 12.5px; color: #4d5f4f">Facebook boost, week 2</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">ADS-MKT</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">600</span></span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #c3d2b6">
+        <span style="font-family: 'Zilla Slab', ui-serif, Georgia, serif; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: #5f7c58">Shop &amp; Supplies</span>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #46583f">505 · 15%</span>
+      </div>
+      <div style="height: 3px; background: #e2ead4; margin-top: 6px"><div style="width: 14.5%; height: 100%; background: #a3402c"></div></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #c3d2b6">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Stationery &amp; Packing Supplies</span><span style="font-size: 12.5px; color: #4d5f4f">Tape, markers, bubble wrap</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">STAT-PACK</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">385</span></span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Shop Maintenance &amp; Repairs</span><span style="font-size: 12.5px; color: #4d5f4f">LED tubes ×2</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">SHOP-MAINT</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">120</span></span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #c3d2b6">
+        <span style="font-family: 'Zilla Slab', ui-serif, Georgia, serif; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: #5f7c58">Communication</span>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #46583f">250 · 7%</span>
+      </div>
+      <div style="height: 3px; background: #e2ead4; margin-top: 6px"><div style="width: 7.2%; height: 100%; background: #a3402c"></div></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Communication</span><span style="font-size: 12.5px; color: #4d5f4f">Shop phone top-up</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">COMM</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">250</span></span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #c3d2b6">
+        <span style="font-family: 'Zilla Slab', ui-serif, Georgia, serif; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: #5f7c58">Utilities</span>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #46583f">150 · 4%</span>
+      </div>
+      <div style="height: 3px; background: #e2ead4; margin-top: 6px"><div style="width: 4.3%; height: 100%; background: #a3402c"></div></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Waste Disposal</span><span style="font-size: 12.5px; color: #4d5f4f">Weekly pickup</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">WASTE</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">150</span></span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #c3d2b6">
+        <span style="font-family: 'Zilla Slab', ui-serif, Georgia, serif; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: #5f7c58">General</span>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #46583f">75 · 2%</span>
+      </div>
+      <div style="height: 3px; background: #e2ead4; margin-top: 6px"><div style="width: 2.2%; height: 100%; background: #a3402c"></div></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0">
+        <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-weight: 600; font-size: 14px">Expenses (General)</span><span style="font-size: 12.5px; color: #4d5f4f">Cable ties for display</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; flex: 0 0 auto"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; color: #46583f; background: #e2ead4; padding: 3px 7px; border-radius: 4px">EXP_GEN</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; min-width: 48px; text-align: right">75</span></span>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top: 26px; padding-top: 16px; border-top: 2px solid #5f7c58; display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+    <span style="font-family: 'Zilla Slab', ui-serif, Georgia, serif; font-weight: 700; font-size: 18px">Total for the day</span>
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 22px; font-weight: 500">MVR 3,480</span>
+  </div>
+  <div style="margin-top: 8px; font-size: 12.5px; color: #7c8c7a">Yesterday MVR 2,140 · Week to date MVR 23,330</div>
+
+</div>
+</x-dc>
+</body>
+</html>
